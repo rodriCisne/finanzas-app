@@ -1,9 +1,13 @@
-// hooks/useMonthTransactions.ts
 'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { getCurrentMonthRange } from '@/utils/date';
+
+export type Tag = {
+  id: string;
+  name: string;
+};
 
 export type Transaction = {
   id: string;
@@ -12,6 +16,7 @@ export type Transaction = {
   date: string; // 'YYYY-MM-DD'
   note: string | null;
   category_name: string | null;
+  tags: Tag[];
 };
 
 export type MonthSummary = {
@@ -27,6 +32,7 @@ export function useMonthTransactions(walletId?: string) {
     expense: 0,
     balance: 0,
   });
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +40,7 @@ export function useMonthTransactions(walletId?: string) {
       if (!walletId) {
         setTransactions([]);
         setSummary({ income: 0, expense: 0, balance: 0 });
+        setAvailableTags([]);
         setLoading(false);
         return;
       }
@@ -53,6 +60,12 @@ export function useMonthTransactions(walletId?: string) {
           note,
           category:categories (
             name
+          ),
+          tags:transaction_tags (
+            tag:tags (
+              id,
+              name
+            )
           )
         `
         )
@@ -66,19 +79,35 @@ export function useMonthTransactions(walletId?: string) {
         console.error('Error cargando transacciones del mes', error);
         setTransactions([]);
         setSummary({ income: 0, expense: 0, balance: 0 });
+        setAvailableTags([]);
         setLoading(false);
         return;
       }
 
       const mapped: Transaction[] =
-        (data ?? []).map((row: any) => ({
-          id: row.id,
-          type: row.type,
-          amount: Number(row.amount),
-          date: row.date,
-          note: row.note ?? null,
-          category_name: row.category?.name ?? null,
-        })) ?? [];
+        (data ?? []).map((row: any) => {
+          const tags: Tag[] =
+            (row.tags ?? [])
+              .map((tt: any) => tt.tag)
+              .filter((t: any) => t)
+              .map(
+                (t: any) =>
+                  ({
+                    id: t.id,
+                    name: t.name,
+                  } as Tag)
+              ) ?? [];
+
+          return {
+            id: row.id,
+            type: row.type,
+            amount: Number(row.amount),
+            date: row.date,
+            note: row.note ?? null,
+            category_name: row.category?.name ?? null,
+            tags,
+          };
+        }) ?? [];
 
       const income = mapped
         .filter((t) => t.type === 'income')
@@ -94,11 +123,28 @@ export function useMonthTransactions(walletId?: string) {
         expense,
         balance: income - expense,
       });
+
+      // Construir lista de etiquetas únicas usadas este mes
+      const tagMap = new Map<string, Tag>();
+      mapped.forEach((tx) => {
+        tx.tags.forEach((tag) => {
+          if (!tagMap.has(tag.id)) {
+            tagMap.set(tag.id, tag);
+          }
+        });
+      });
+
+      setAvailableTags(
+        Array.from(tagMap.values()).sort((a, b) =>
+          a.name.localeCompare(b.name, 'es')
+        )
+      );
+
       setLoading(false);
     };
 
     load();
   }, [walletId]);
 
-  return { transactions, summary, loading };
+  return { transactions, summary, loading, availableTags };
 }

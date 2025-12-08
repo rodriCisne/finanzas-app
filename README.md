@@ -10,7 +10,7 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
 
 ---
 
-## 🧱 Estado actual del MVP
+## 🧱 Estado actual del MVP (V1)
 
 ### Backend / Base de datos (Supabase)
 
@@ -55,9 +55,9 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
     - Trae su info desde `wallets` (id, nombre, moneda por defecto).
   - Home autenticada (`/(app)/page.tsx`) usa ese hook para mostrar la billetera actual.
 
-#### UI de transacciones (Fase 2)
+#### Transacciones (V1)
 
-- **Resumen mensual** en la home:
+- **Resumen mensual en la home**:
   - Hook `useMonthTransactions(walletId)`:
     - Filtra transacciones del **mes actual** para la billetera activa.
     - Calcula:
@@ -65,11 +65,11 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
       - Total de gastos.
       - Balance (ingresos – gastos).
   - Card en el header que muestra:
-    - Mes actual (ej. “noviembre de 2025”).
+    - Mes actual (ej. “diciembre de 2025”).
     - Ingresos, gastos y balance formateados con la moneda de la billetera.
 - **Listado de transacciones del mes**:
   - Se muestran en `/` debajo del resumen:
-    - Fecha (ajustada correctamente a la zona horaria, evitando el bug del “día menos”).
+    - Fecha (ajustada correctamente a la zona horaria; se parsea el string de fecha a mano).
     - Nombre de la categoría (o “Sin categoría”).
     - Nota (si existe).
     - Monto:
@@ -85,12 +85,49 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
   - Hook `useCategories(walletId)` para listar categorías de la billetera.
   - Al guardar:
     - Inserta en `transactions` con:
-      - `wallet_id` de la billetera actual.
+      - `wallet_id` = billetera actual.
       - `created_by` = usuario autenticado.
+      - `type` = gasto/ingreso.
+      - `amount`.
       - `currency_code` = moneda default de la billetera.
+      - `category_id` (o `null`).
+      - `date`.
+      - `note` (o `null`).
     - Redirige a `/`, donde la nueva transacción ya aparece en la lista y actualiza los totales.
 
-#### Diseño / UX
+#### Etiquetas y filtros (V1)
+
+- **Etiquetas por billetera**:
+  - Hook `useTags(walletId)`:
+    - Devuelve todas las etiquetas de la billetera (`tags`).
+    - Permite refrescar la lista (`refetch`) cuando se crean nuevas etiquetas.
+- **Asignación de etiquetas a transacciones**:
+  - En `/transactions/new`:
+    - Se listan las etiquetas existentes de la billetera como “chips” seleccionables.
+    - Se pueden seleccionar **múltiples etiquetas** para una misma transacción.
+    - Se puede crear una **nueva etiqueta** escribiendo un nombre y pulsando “Crear”:
+      - Se guarda en `tags` asociada a la billetera actual.
+      - Se recarga la lista y se selecciona automáticamente si se desea.
+  - Al guardar la transacción:
+    - Además de insertar en `transactions`, se insertan filas en `transaction_tags`:
+      - Una fila por cada etiqueta seleccionada (`transaction_id`, `tag_id`).
+- **Lectura de etiquetas en las transacciones**:
+  - `useMonthTransactions` trae, para cada transacción, sus etiquetas asociadas usando un join con `transaction_tags` → `tags`.
+  - Cada transacción tiene un campo `tags: Tag[]`.
+- **Panel de filtros por etiqueta en la home**:
+  - En la home, arriba de la lista de transacciones:
+    - Se muestran chips con:
+      - `Todas`
+      - Una chip por cada etiqueta **usada al menos en una transacción del mes**.
+  - Al tocar una etiqueta:
+    - Se filtra la lista y se muestran solo transacciones que tengan esa etiqueta.
+  - El chip `Todas` desactiva el filtro.
+- **Visualización de etiquetas en la tarjeta de transacción**:
+  - En cada item de la lista, debajo de la nota, se muestran las etiquetas de la transacción como pequeños chips (`Sushi`, `Vicu`, etc.).
+
+---
+
+### Diseño / UX
 
 - Layout mobile-first:
   - Contenedor principal `max-w-md mx-auto` → se ve como app de celular, centrada en desktop.
@@ -171,7 +208,7 @@ Copiar código
 npm run dev
 Abrir http://localhost:3000.
 
-Flujo esperado:
+Flujo esperado (V1):
 
 Sin sesión → la ruta / redirige a /auth/login.
 
@@ -187,17 +224,19 @@ En / ves:
 
 Header con nombre de billetera + moneda.
 
-Card con resumen del mes actual.
+Card con resumen del mes actual (ingresos / gastos / balance).
 
 Lista de transacciones del mes (si hay).
+
+Chips de etiquetas para filtrar, si hay transacciones etiquetadas.
 
 Botón “+”:
 
 Lleva a /transactions/new.
 
-Permite crear un gasto/ingreso.
+Permite crear un gasto/ingreso, asignar categoría y etiquetas (nuevas o existentes).
 
-Vuelve a / y actualiza el listado + totales.
+Vuelve a / y actualiza el listado + totales + panel de filtros.
 
 📁 Estructura de carpetas (simplificada)
 txt
@@ -206,47 +245,40 @@ app/
   (auth)/
     auth/
       login/
-        page.tsx        # Login
+        page.tsx          # Login
       register/
-        page.tsx        # Registro
+        page.tsx          # Registro
   (app)/
-    layout.tsx          # Layout protegido (RequireAuth + diseño mobile)
-    page.tsx            # Home autenticada (resumen + lista de transacciones)
+    layout.tsx            # Layout protegido (RequireAuth + diseño mobile)
+    page.tsx              # Home autenticada (resumen + lista + filtros)
     transactions/
       new/
-        page.tsx        # Pantalla de nueva transacción
-  layout.tsx            # Root layout (AuthProvider + estilos globales)
-  globals.css           # Tailwind v4 (@import "tailwindcss")
+        page.tsx          # Pantalla de nueva transacción
+  layout.tsx              # Root layout (AuthProvider + estilos globales)
+  globals.css             # Tailwind v4 (@import "tailwindcss")
 
 components/
-  AuthContext.tsx       # Contexto de auth (session + user)
-  RequireAuth.tsx       # Protege rutas autenticadas
+  AuthContext.tsx         # Contexto de auth (session + user)
+  RequireAuth.tsx         # Protege rutas autenticadas
 
 hooks/
-  useCurrentWallet.ts   # Hook para obtener billetera actual
-  useMonthTransactions.ts # Hook para transacciones del mes + resumen
-  useCategories.ts      # Hook para categorías de la billetera
+  useCurrentWallet.ts     # Hook para obtener billetera actual
+  useMonthTransactions.ts # Hook para transacciones del mes + resumen + tags
+  useCategories.ts        # Hook para categorías de la billetera
+  useTags.ts              # Hook para etiquetas de la billetera
 
 lib/
-  supabaseClient.ts     # Cliente de Supabase
+  supabaseClient.ts       # Cliente de Supabase
 
 utils/
-  date.ts               # Helpers de fechas (rango de mes actual, labels)
+  date.ts                 # Helpers de fechas (rango de mes actual, labels)
 
 docs/
-  db-schema.md          # Documentación de la base (Fase 1)
+  db-schema.md            # Documentación de la base (Fase 1)
 
-.env.local              # Variables de entorno (ignore en git)
-🗺️ Roadmap (próximas fases)
-Fase 3 – Etiquetas
-
-CRUD de etiquetas.
-
-Asignar etiquetas a transacciones (N:N).
-
-Filtros por etiqueta en la home.
-
-Fase 4 – PWA
+.env.local                # Variables de entorno (ignore en git)
+🗺️ Roadmap (próximas fases posibles)
+PWA
 
 Web App Manifest.
 
@@ -254,10 +286,18 @@ Service Worker y caching básico.
 
 Test de instalabilidad (Lighthouse / Chrome).
 
-Fase 5 – Billeteras compartidas
+Billeteras compartidas (v2)
 
 UI para ver todas las billeteras del usuario.
+
+Crear billeteras nuevas.
 
 Invitar miembros a una billetera (gestión de wallet_members).
 
 Roles y permisos sobre transacciones/categorías.
+
+Más analítica
+
+Gráficos por categoría / etiqueta.
+
+Presupuestos por categoría / billetera.

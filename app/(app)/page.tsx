@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useCurrentWallet } from '@/hooks/useCurrentWallet';
 import { useMonthTransactions } from '@/hooks/useMonthTransactions';
 import { supabase } from '@/lib/supabaseClient';
@@ -17,7 +18,6 @@ function formatAmount(amount: number, currency: string) {
 function formatDateLabel(dateStr: string) {
   // dateStr viene como 'YYYY-MM-DD'
   const [year, month, day] = dateStr.split('-').map(Number);
-  // new Date(año, mesIndex, día) interpreta la fecha en hora LOCAL
   const d = new Date(year, month - 1, day);
 
   return d.toLocaleDateString('es-AR', {
@@ -30,9 +30,14 @@ function formatDateLabel(dateStr: string) {
 export default function HomePage() {
   const router = useRouter();
   const { wallet, loading: walletLoading } = useCurrentWallet();
-  const { transactions, summary, loading: txLoading } = useMonthTransactions(
-    wallet?.id
-  );
+  const {
+    transactions,
+    summary,
+    loading: txLoading,
+    availableTags,
+  } = useMonthTransactions(wallet?.id);
+
+  const [selectedTagId, setSelectedTagId] = useState<string | 'all'>('all');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -68,6 +73,13 @@ export default function HomePage() {
   }
 
   const monthLabel = getCurrentMonthLabel();
+
+  const filteredTransactions =
+    selectedTagId === 'all'
+      ? transactions
+      : transactions.filter((t) =>
+          t.tags.some((tag) => tag.id === selectedTagId)
+        );
 
   return (
     <main className="min-h-screen flex flex-col relative">
@@ -129,17 +141,51 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Lista de transacciones */}
+      {/* Lista de transacciones + filtros */}
       <section className="flex-1 p-4 pb-20">
+        {/* Barra de filtros por etiqueta */}
+        {availableTags.length > 0 && (
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+            <button
+              type="button"
+              onClick={() => setSelectedTagId('all')}
+              className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${
+                selectedTagId === 'all'
+                  ? 'bg-emerald-500 text-black border-emerald-400'
+                  : 'bg-slate-900 text-slate-200 border-slate-700'
+              }`}
+            >
+              Todas
+            </button>
+            {availableTags.map((tag) => {
+              const selected = selectedTagId === tag.id;
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => setSelectedTagId(tag.id)}
+                  className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${
+                    selected
+                      ? 'bg-emerald-500 text-black border-emerald-400'
+                      : 'bg-slate-900 text-slate-200 border-slate-700'
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {txLoading ? (
           <p className="text-sm text-slate-400">Cargando transacciones...</p>
-        ) : transactions.length === 0 ? (
+        ) : filteredTransactions.length === 0 ? (
           <p className="text-sm text-slate-500">
-            Aún no registraste movimientos este mes.
+            No hay movimientos para este filtro en este mes.
           </p>
         ) : (
           <ul className="space-y-3">
-            {transactions.map((t) => (
+            {filteredTransactions.map((t) => (
               <li
                 key={t.id}
                 className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5"
@@ -153,6 +199,19 @@ export default function HomePage() {
                   </span>
                   {t.note && (
                     <span className="text-xs text-slate-500">{t.note}</span>
+                  )}
+
+                  {t.tags.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {t.tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-emerald-300"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <div
