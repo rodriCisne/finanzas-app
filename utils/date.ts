@@ -30,3 +30,15 @@ export function getCurrentMonthLabel(locale: string = 'es-AR') {
     year: 'numeric',
   });
 }
+
+export function getTodayLocalDateString() {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  const year = now.getFullYear();
+  const month = pad(now.getMonth() + 1); // 0-11
+  const day = pad(now.getDate());
+
+  // Formato 'YYYY-MM-DD' usando la fecha local
+  return `${year}-${month}-${day}`;
+}

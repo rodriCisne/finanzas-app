@@ -188,7 +188,8 @@ export default function HomePage() {
             {filteredTransactions.map((t) => (
               <li
                 key={t.id}
-                className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5"
+                onClick={() => router.push(`/transactions/${t.id}`)}
+                className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5 cursor-pointer hover:border-emerald-500/60 transition-colors"
               >
                 <div className="flex flex-col">
                   <span className="text-xs text-slate-400">
