@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { getCurrentMonthRange } from '@/utils/date';
+import { getMonthRange } from '@/utils/date';
 
 export type Tag = {
   id: string;
@@ -25,7 +25,7 @@ export type MonthSummary = {
   balance: number;
 };
 
-export function useMonthTransactions(walletId?: string) {
+export function useMonthTransactions(walletId?: string, year?: number, month?: number ) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<MonthSummary>({
     income: 0,
@@ -47,7 +47,11 @@ export function useMonthTransactions(walletId?: string) {
 
       setLoading(true);
 
-      const [start, end] = getCurrentMonthRange();
+      const now = new Date();
+      const yearToUse  = year ?? now.getFullYear();
+      const monthToUse  = month ?? now.getMonth() + 1;
+
+      const [start, end] = getMonthRange(yearToUse, monthToUse);
 
       const { data, error } = await supabase
         .from('transactions')
@@ -144,7 +148,7 @@ export function useMonthTransactions(walletId?: string) {
     };
 
     load();
-  }, [walletId]);
+  }, [walletId, year, month]);
 
   return { transactions, summary, loading, availableTags };
 }

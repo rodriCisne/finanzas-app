@@ -5,7 +5,9 @@ import { useCurrentWallet } from '@/hooks/useCurrentWallet';
 import { useMonthTransactions } from '@/hooks/useMonthTransactions';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { getCurrentMonthLabel } from '@/utils/date';
+import { getMonthLabel, getCurrentYearMonth } from '@/utils/date';
+import { useTags } from '@/hooks/useTags';
+
 
 function formatAmount(amount: number, currency: string) {
   return new Intl.NumberFormat('es-AR', {
@@ -30,14 +32,24 @@ function formatDateLabel(dateStr: string) {
 export default function HomePage() {
   const router = useRouter();
   const { wallet, loading: walletLoading } = useCurrentWallet();
+
+  const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
+
+  const [period, setPeriod] = useState({ year: currentYear, month: currentMonth });
+
+  const year = period.year;
+  const month = period.month;
+
+
   const {
     transactions,
     summary,
     loading: txLoading,
-    availableTags,
-  } = useMonthTransactions(wallet?.id);
+  } = useMonthTransactions(wallet?.id, year, month);
 
   const [selectedTagId, setSelectedTagId] = useState<string | 'all'>('all');
+
+  const { tags: allTags } = useTags(wallet?.id);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -72,7 +84,30 @@ export default function HomePage() {
     );
   }
 
-  const monthLabel = getCurrentMonthLabel();
+  
+
+  const goToPrevMonth = () => {
+    setPeriod((prev) => {
+      if (prev.month === 1) {
+        return { year: prev.year - 1, month: 12 };
+      }
+      return { year: prev.year, month: prev.month - 1 };
+    });
+  };
+
+  const goToNextMonth = () => {
+    setPeriod((prev) => {
+      if (prev.month === 12) {
+        return { year: prev.year + 1, month: 1 };
+      }
+      return { year: prev.year, month: prev.month + 1 };
+    });
+  };
+
+
+
+  const monthLabel = getMonthLabel(year, month);
+  
 
   const filteredTransactions =
     selectedTagId === 'all'
@@ -107,11 +142,31 @@ export default function HomePage() {
         {/* Card de resumen mensual */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-slate-400">{monthLabel}</p>
+            <div className="flex items-center gap-2 w-[190px] justify-between">
+              <button
+                type="button"
+                onClick={goToPrevMonth}
+                className="text-xs text-slate-500 hover:text-slate-300"
+              >
+                ◀
+              </button>
+              <p className="text-xs text-slate-400 capitalize truncate">
+                {monthLabel}
+              </p>
+              <button
+                type="button"
+                onClick={goToNextMonth}
+                className="text-xs text-slate-500 hover:text-slate-300"
+              >
+                ▶
+              </button>
+            </div>
+
             <p className="text-[11px] text-slate-500">
               Ingresos / Gastos / Balance
             </p>
           </div>
+
           <div className="flex items-end justify-between">
             <div>
               <p className="text-[11px] text-emerald-400 mb-1">Ingresos</p>
@@ -144,7 +199,7 @@ export default function HomePage() {
       {/* Lista de transacciones + filtros */}
       <section className="flex-1 p-4 pb-20">
         {/* Barra de filtros por etiqueta */}
-        {availableTags.length > 0 && (
+        {allTags.length > 0 && (
           <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
             <button
               type="button"
@@ -157,7 +212,7 @@ export default function HomePage() {
             >
               Todas
             </button>
-            {availableTags.map((tag) => {
+            {allTags.map((tag) => {
               const selected = selectedTagId === tag.id;
               return (
                 <button
@@ -176,6 +231,7 @@ export default function HomePage() {
             })}
           </div>
         )}
+
 
         {txLoading ? (
           <p className="text-sm text-slate-400">Cargando transacciones...</p>
