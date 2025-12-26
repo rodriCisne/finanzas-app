@@ -29,7 +29,7 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
   - Crea categorías por defecto (Comida y bebida, Transporte, Salud, Entretenimiento, Sueldo).
 - Row Level Security (RLS) configurado:
   - Cada usuario ve solo:
-    - Sus billeteras (`wallets` donde es miembro).
+    - Sus billeteras (por membresía en `wallet_members`).
     - Sus categorías / tags / transacciones asociadas a billeteras donde es miembro.
 
 > El detalle completo del esquema y todas las policies está documentado en  
@@ -80,6 +80,23 @@ En esta etapa se incorporó el concepto de **billetera activa** y una UI para li
     - setea `currentWalletId`
     - redirige a `/` (Home) para ver datos de esa billetera.
 
+### Crear billetera (WIP)
+
+- Se agregó la ruta: `/(app)/wallets/new`
+  - Form para crear una billetera con:
+    - nombre
+    - moneda por defecto
+  - Llama a una RPC en Supabase `create_wallet(name, default_currency_code)` para:
+    - insertar una fila en `wallets`
+    - insertar una fila en `wallet_members` como `owner`
+    - devolver el `wallet_id`
+  - Al crear:
+    - setea esa billetera como activa (`setCurrentWalletId`)
+    - refresca la lista (`refetchWallets`)
+    - redirige a `/`
+
+> Nota: si tu tabla `wallets` tiene `owner_id NOT NULL`, la RPC debe setear `owner_id = auth.uid()`.
+
 ### Integración con el resto de la app
 
 - La Home y los hooks principales usan `currentWallet` (billetera activa) para:
@@ -87,7 +104,7 @@ En esta etapa se incorporó el concepto de **billetera activa** y una UI para li
   - calcular resumen,
   - filtrar etiquetas y categorías.
 
-> Próximos pasos: creación de billeteras nuevas e invitaciones (gestión de `wallet_members`).
+> Próximos pasos: pantalla detalle de billetera (miembros/roles) + invitaciones (gestión de `wallet_members`).
 
 ---
 
@@ -287,13 +304,44 @@ se crean categorías por defecto.
 
 Los scripts y explicación paso a paso están en docs/db-schema.md.
 
-5. Levantar el dev server
+5. RPC necesaria para crear billeteras (si usás /wallets/new)
+Crear la función create_wallet (RPC) en Supabase.
+Si tu tabla wallets tiene owner_id NOT NULL, asegurate de incluir owner_id = auth.uid() en el insert.
+
+Ejemplo (sin owner_id):
+
+sql
+Copiar código
+create or replace function public.create_wallet(
+  p_name text,
+  p_default_currency_code text
+)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  v_wallet_id uuid;
+begin
+  insert into public.wallets (name, default_currency_code)
+  values (trim(p_name), upper(trim(p_default_currency_code)))
+  returning id into v_wallet_id;
+
+  insert into public.wallet_members (wallet_id, user_id, role)
+  values (v_wallet_id, auth.uid(), 'owner');
+
+  return v_wallet_id;
+end;
+$$;
+
+grant execute on function public.create_wallet(text, text) to authenticated;
+6. Levantar el dev server
 bash
 Copiar código
 npm run dev
 Abrir http://localhost:3000.
 
-6. Flujo esperado (V1)
+7. Flujo esperado (V1)
 Sin sesión → / redirige a /auth/login.
 
 Registro → crea perfil + billetera + categorías → redirige a /.
@@ -318,6 +366,14 @@ lista billeteras del usuario,
 
 permite seleccionar billetera activa y volver a /.
 
+/wallets/new:
+
+crea billetera nueva,
+
+la deja como activa,
+
+vuelve a /.
+
 📁 Estructura de carpetas (simplificada)
 txt
 Copiar código
@@ -334,6 +390,8 @@ app/
     page.tsx                      # Home (resumen + lista + filtros + selector de mes)
     wallets/
       page.tsx                    # Lista/selección de billeteras
+      new/
+        page.tsx                  # Crear billetera nueva
     transactions/
       new/
         page.tsx                  # Nueva transacción (usa TransactionFormScreen)
