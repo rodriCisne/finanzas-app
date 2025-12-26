@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWallets } from '@/components/WalletContext';
 
+
 export default function WalletsPage() {
   const router = useRouter();
   const { wallets, currentWalletId, setCurrentWalletId, loading } = useWallets();
@@ -56,12 +57,16 @@ export default function WalletsPage() {
                       Moneda: {w.default_currency_code}
                     </p>
                   </div>
-
-                  {selected && (
-                    <span className="text-xs font-semibold text-emerald-400">
-                      Actual
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {selected && <span className="text-xs font-semibold text-emerald-400">Actual</span>}
+                    <Link
+                      href={`/wallets/${w.id}/edit`}
+                      className="text-xs text-slate-300 underline"
+                      onClick={(e) => e.stopPropagation()} // evita que cambie wallet al tocar editar
+                    >
+                      Editar
+                    </Link>
+                  </div>
                 </div>
               </button>
             );
