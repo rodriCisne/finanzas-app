@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCurrentWallet } from '@/hooks/useCurrentWallet';
+import { useWallets } from '@/components/WalletContext';
 import { useCategories } from '@/hooks/useCategories';
 import { useTags } from '@/hooks/useTags';
 import { useAuth } from '@/components/AuthContext';
@@ -28,7 +28,7 @@ type TxFromDb = {
 export function TransactionFormScreen({ mode, transactionId }: Props) {
   const router = useRouter();
   const { user } = useAuth();
-  const { wallet, loading: walletLoading } = useCurrentWallet();
+  const { currentWallet: wallet, loading: walletLoading } = useWallets();
   const { categories, loading: categoriesLoading } = useCategories(wallet?.id);
   const { tags, loading: tagsLoading, refetch: refetchTags } = useTags(
     wallet?.id
@@ -49,6 +49,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
 
   // 🔄 Cargar la transacción en modo edición
   useEffect(() => {
@@ -219,6 +220,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
           category_id: categoryId || null,
           date,
           note: note || null,
+          currency_code: wallet.default_currency_code,
           updated_at: new Date().toISOString(),
         })
         .eq('id', transactionId)
