@@ -37,9 +37,9 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
 
 ---
 
-### Frontend / App
+## 🖥️ Frontend / App
 
-#### Autenticación y estructura
+### Autenticación y estructura
 
 - **Auth básica**:
   - Registro (`/auth/register`) con nombre, email y contraseña.
@@ -49,17 +49,51 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
   - `AuthProvider` (contexto React) mantiene `session`, `user` y `loading`.
   - `RequireAuth` protege todas las rutas dentro del grupo `/(app)`:
     - Si no hay usuario → redirige a `/auth/login`.
-- **Billetera personal**:
-  - Hook `useCurrentWallet`:
-    - Busca en `wallet_members` la primera billetera del usuario (por ahora “Personal”).
-    - Trae su info desde `wallets` (id, nombre, moneda por defecto).
-  - Home autenticada (`/(app)/page.tsx`) usa ese hook para mostrar la billetera actual (nombre + moneda).
 
 ---
 
-### Transacciones (V1)
+## 👛 Billeteras (Base para “billeteras compartidas”)
 
-#### Resumen mensual y navegación por meses
+En esta etapa se incorporó el concepto de **billetera activa** y una UI para listar/seleccionar billeteras del usuario.
+
+### WalletProvider (billetera activa)
+
+- Se agregó `WalletProvider` (`components/WalletContext.tsx`):
+  - Carga todas las billeteras del usuario consultando `wallet_members` → join con `wallets`.
+  - Mantiene:
+    - `wallets`: lista de billeteras del usuario.
+    - `currentWalletId`: id de la billetera seleccionada.
+    - `currentWallet`: billetera activa (objeto completo).
+    - `loading`: estado de carga.
+  - Persiste la billetera activa en `localStorage` (`finanzas.currentWalletId`) para que se mantenga al refrescar.
+  - Si no existe selección previa o es inválida, toma la primera billetera del usuario como default.
+- El `WalletProvider` vive dentro del layout protegido `app/(app)/layout.tsx`, por lo que:
+  - solo existe para usuarios autenticados,
+  - y todas las pantallas del grupo `/(app)` pueden acceder a la billetera activa.
+
+### Pantalla de billeteras
+
+- Se agregó la ruta: `/(app)/wallets`
+  - Lista todas las billeteras del usuario.
+  - Permite seleccionar una billetera.
+  - Al seleccionar:
+    - setea `currentWalletId`
+    - redirige a `/` (Home) para ver datos de esa billetera.
+
+### Integración con el resto de la app
+
+- La Home y los hooks principales usan `currentWallet` (billetera activa) para:
+  - listar transacciones del mes,
+  - calcular resumen,
+  - filtrar etiquetas y categorías.
+
+> Próximos pasos: creación de billeteras nuevas e invitaciones (gestión de `wallet_members`).
+
+---
+
+## 💳 Transacciones (V1)
+
+### Resumen mensual y navegación por meses
 
 - Hook `useMonthTransactions(walletId, year, month)`:
   - Filtra transacciones de la billetera activa para el **año/mes seleccionados**.
@@ -70,143 +104,123 @@ Mobile-first y pensada para evolucionar luego a **PWA**.
 - En la home:
   - Estado local `{ year, month }`:
     - Inicializado con el año/mes actual.
-    - Actualizado con dos botones:
+    - Botones:
       - `◀` → mes anterior (maneja correctamente salto de enero ↔ diciembre y cambio de año).
       - `▶` → mes siguiente.
-  - `monthLabel` se genera con helpers de fecha y muestra textos tipo **“noviembre de 2025”**.
-  - La card de resumen muestra siempre los totales del mes seleccionado:
+  - `monthLabel` se genera con helpers y muestra textos tipo **“noviembre de 2025”**.
+  - Card de resumen muestra totales del mes seleccionado:
     - Ingresos, gastos y balance formateados con la moneda de la billetera.
 
-#### Listado de transacciones del mes
+### Listado de transacciones del mes
 
 - Se muestran en `/` debajo del resumen:
-  - Fecha formateada correctamente (usando la fecha `date` de la transacción, que es sólo fecha, sin problemas de timezone).
+  - Fecha (de `transactions.date`, es una fecha “contable” sin timezone).
   - Nombre de la categoría (o “Sin categoría”).
   - Nota (si existe).
   - Monto:
-    - En verde con `+` para ingresos.
-    - En rojo con `-` para gastos.
-- Cada ítem de la lista:
-  - Es clickeable.
-  - Al tocarlo, navega a `/transactions/[id]` para editar la transacción.
+    - Verde con `+` para ingresos.
+    - Rojo con `-` para gastos.
+- Cada ítem:
+  - Es clickeable y navega a `/transactions/[id]` para editar.
 
 ---
 
-### Alta, edición y borrado de transacciones
+## ✍️ Alta, edición y borrado de transacciones
 
 Se reutiliza una **única pantalla de formulario** para crear y editar transacciones:
 
+### Form reutilizable
+
 - Componente `TransactionFormScreen`:
-  - Recibe props:
+  - Props:
     - `mode: 'create' | 'edit'`
     - `transactionId?: string`
   - Se usa en:
     - `/transactions/new` → `mode="create"`.
     - `/transactions/[id]` → `mode="edit"` + `transactionId` desde la URL.
   - Usa:
-    - `useCurrentWallet` para saber la billetera actual.
-    - `useCategories(walletId)` para listar categorías.
-    - `useTags(walletId)` para listar y crear etiquetas.
-- **Campos del formulario**:
-  - Tipo: **Gasto / Ingreso** (toggle).
-  - Monto (numérico, validado > 0).
-  - Fecha:
-    - Para nuevas transacciones se inicializa con la **fecha local de hoy** (no en UTC), usando un helper que arma `YYYY-MM-DD` en base a la hora local.
-  - Categoría:
-    - Select filtrado según tipo: `income` / `expense` / `both`.
-  - Etiquetas:
-    - Chips seleccionables con todas las etiquetas de la billetera.
-    - Caja de texto + botón **“Crear”** para agregar nuevas etiquetas.
-  - Nota opcional.
-- **Crear transacción (`mode="create"`)**:
-  - Inserta en `transactions` con:
-    - `wallet_id` = billetera actual.
-    - `created_by` = usuario autenticado.
-    - `type`, `amount`, `currency_code`, `category_id`, `date`, `note`.
-  - Inserta en `transaction_tags` una fila por cada etiqueta seleccionada.
-  - Redirige a `/`, donde se actualiza el resumen y la lista del mes correspondiente.
-- **Editar transacción (`mode="edit"`)**:
-  - Al cargar la pantalla:
-    - Hace un `SELECT` de la transacción por `id` + `wallet_id`.
-    - Rellena el formulario con los datos existentes (incluyendo etiquetas).
-  - Al guardar:
-    - Hace `UPDATE` en `transactions` con los nuevos valores.
-    - Borra las etiquetas previas de `transaction_tags` para ese `transaction_id`.
-    - Inserta de nuevo las etiquetas seleccionadas.
-    - Redirige a `/` (la home se refresca con los nuevos datos).
-- **Borrado de transacción**:
-  - En modo edición aparece un botón de texto **“Eliminar”** en el header.
-  - Pide confirmación (`window.confirm`).
-  - Si se confirma:
-    - Borra primero las filas de `transaction_tags` asociadas.
-    - Luego borra la fila en `transactions`.
-    - Redirige a `/`, donde la transacción ya no aparece y los totales se recalculan.
+    - `currentWallet` (billetera activa) para trabajar sobre esa billetera.
+    - `useCategories(walletId)` para categorías.
+    - `useTags(walletId)` para etiquetas.
+
+### Crear transacción (`mode="create"`)
+
+- Inserta en `transactions` con:
+  - `wallet_id` = billetera activa.
+  - `created_by` = usuario autenticado.
+  - `type`, `amount`, `currency_code`, `category_id`, `date`, `note`.
+- Inserta en `transaction_tags` una fila por cada etiqueta seleccionada.
+- Redirige a `/`, donde se actualiza resumen/lista del mes.
+
+### Editar transacción (`mode="edit"`)
+
+- Al cargar:
+  - `SELECT` por `id` + `wallet_id`.
+  - Rellena form (incluye etiquetas).
+- Al guardar:
+  - `UPDATE` en `transactions`.
+  - Borra etiquetas previas en `transaction_tags`.
+  - Inserta nuevas etiquetas seleccionadas.
+  - Redirige a `/`.
+
+### Borrado de transacción
+
+- En modo edición aparece un botón **“Eliminar”**.
+- Pide confirmación (`window.confirm`).
+- Si se confirma:
+  - Borra primero filas de `transaction_tags`.
+  - Luego borra `transactions`.
+  - Redirige a `/` y se recalculan totales.
 
 ---
 
-### Etiquetas y filtros (V1)
+## 🏷️ Etiquetas y filtros (V1)
 
-#### Etiquetas por billetera
+### Etiquetas por billetera
 
 - Hook `useTags(walletId)`:
-  - Devuelve **todas las etiquetas de la billetera** (`tags`).
-  - Permite refrescar la lista (`refetch`) cuando se crean nuevas etiquetas.
+  - Devuelve **todas las etiquetas de la billetera**.
+  - Permite `refetch()`.
 
-#### Asignación de etiquetas a transacciones
+### Asignación de etiquetas
 
-- Desde la pantalla `TransactionFormScreen` (tanto en alta como en edición):
-  - Se listan todas las etiquetas existentes de la billetera como chips seleccionables.
-  - Se pueden seleccionar **múltiples etiquetas** para una misma transacción.
-  - Se puede crear una **nueva etiqueta**:
-    - Se guarda en `tags` asociada a la billetera actual.
-    - Se actualiza la lista de etiquetas.
-    - Se puede marcar automáticamente como seleccionada.
+- En `TransactionFormScreen`:
+  - Chips seleccionables (multi-select).
+  - Crear nueva etiqueta:
+    - Inserta en `tags`.
+    - Refresca la lista.
+    - (Opcional) la selecciona.
 
-#### Lectura de etiquetas en las transacciones
+### Lectura de etiquetas
 
-- `useMonthTransactions` trae, para cada transacción, sus etiquetas asociadas usando un join con `transaction_tags` → `tags`.
-- Cada transacción expuesta al frontend tiene un campo `tags: Tag[]`.
+- `useMonthTransactions` trae `tags: Tag[]` con join `transaction_tags` → `tags`.
 
-#### Panel de filtros por etiqueta en la home
+### Panel de filtros por etiqueta (Home)
 
-- En la home, arriba de la lista de transacciones, se muestran chips con:
-
+- Chips:
   - `Todas`
-  - Una chip por **cada etiqueta de la billetera**, independientemente del mes.
-
-- El filtro funciona así:
-
-  - El estado `selectedTagId` puede ser:
-    - `'all'` → sin filtro.
-    - `tag.id` → filtra por esa etiqueta.
-  - `filteredTransactions` se calcula filtrando las transacciones del mes actual por la etiqueta seleccionada.
-
-- Al cambiar de mes (usando ◀ / ▶):
-
-  - El panel de etiquetas se mantiene igual (mismas etiquetas de la billetera).
-  - Lo que cambia es la lista filtrada (transacciones del nuevo mes que tengan esa etiqueta).
-  - Si no hay movimientos para ese filtro en ese mes, se muestra el mensaje:
+  - Una chip por **cada etiqueta de la billetera** (siempre se ven, cambie o no el mes).
+- El filtro aplica sobre las transacciones del mes actual:
+  - Si no hay movimientos para ese filtro en el mes, se muestra:
     - **“No hay movimientos para este filtro en este mes.”**
 
-#### Visualización de etiquetas en la tarjeta de transacción
+### Visualización en tarjetas
 
-- En cada ítem de la lista, debajo de la nota, se muestran las etiquetas de la transacción como chips (`Sushi`, `Rodri`, etc.).
+- En cada transacción se muestran sus etiquetas como chips pequeños.
 
 ---
 
-### Diseño / UX
+## 🎨 Diseño / UX
 
-- Layout mobile-first:
-  - Contenedor principal `max-w-md mx-auto` → se ve como app de celular centrada en desktop.
+- Mobile-first:
+  - Contenedor `max-w-md mx-auto` para simular app móvil en desktop.
   - Fondo oscuro (`bg-slate-950`) y textos claros.
-- Botón flotante **“+”**:
-  - Fijo en la esquina inferior derecha.
+- FAB “+”:
+  - Fijo abajo a la derecha.
   - Lleva a `/transactions/new`.
-  - Inspirado en el FAB de apps tipo Spendee.
 - Selector de mes:
-  - Ubicado en la card de resumen.
-  - Botones ◀ / ▶ y label centrado.
-  - Ancho fijo para evitar que el layout “salte” cuando cambia el texto del mes.
+  - En la card de resumen con botones ◀/▶.
+  - Ancho fijo para evitar “saltos” cuando cambia el texto del mes.
 
 ---
 
@@ -215,7 +229,7 @@ Se reutiliza una **única pantalla de formulario** para crear y editar transacci
 - **Framework**: Next.js (App Router)
 - **Lenguaje**: TypeScript
 - **Estilos**: Tailwind CSS v4
-- **Backend as a Service**: Supabase
+- **Backend**: Supabase
   - Auth (Email + Password)
   - PostgreSQL + RLS
 - **Herramientas**:
@@ -236,22 +250,22 @@ bash
 Copiar código
 npm install
 3. Variables de entorno
-Crear un archivo .env.local en la raíz con:
+Crear .env.local:
 
 env
 Copiar código
 NEXT_PUBLIC_SUPABASE_URL=TU_URL_DE_SUPABASE
 NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_ANON_PUBLIC_KEY
-Los valores se obtienen desde:
+Se obtienen desde:
 
 Supabase → Settings → API → Project URL y anon public.
 
-Importante: .env.local está en .gitignore y no debe commitearse.
+Importante: .env.local está en .gitignore.
 
 4. Supabase – preparar la base
-Crear un proyecto en Supabase.
+Crear proyecto en Supabase.
 
-Ejecutar los scripts SQL en este orden:
+Ejecutar scripts SQL en este orden:
 
 currencies + seeds iniciales.
 
@@ -263,13 +277,13 @@ Trigger handle_new_user.
 
 RLS + policies.
 
-Crear un usuario de prueba desde Auth → Users y verificar que:
+Crear usuario de prueba desde Auth → Users y verificar:
 
-Se crea profile.
+se crea profile,
 
-Se crea billetera Personal.
+se crea billetera Personal,
 
-Se agregan categorías por defecto.
+se crean categorías por defecto.
 
 Los scripts y explicación paso a paso están en docs/db-schema.md.
 
@@ -280,47 +294,29 @@ npm run dev
 Abrir http://localhost:3000.
 
 6. Flujo esperado (V1)
-Sin sesión → la ruta / redirige a /auth/login.
+Sin sesión → / redirige a /auth/login.
 
-Desde /auth/register podés crear una cuenta nueva.
+Registro → crea perfil + billetera + categorías → redirige a /.
 
-Al registrarte:
+En /:
 
-El trigger crea perfil + billetera + categorías.
+Header con billetera activa + moneda.
 
-La app redirige a /.
+Resumen mensual + selector de mes.
 
-En / ves:
-
-Header con nombre de billetera + moneda.
-
-Card con resumen del mes actual (ingresos / gastos / balance) y selector de mes.
-
-Panel de etiquetas (todas las etiquetas de la billetera).
+Panel de etiquetas.
 
 Lista de transacciones del mes (si hay).
 
-Botón “+”:
+FAB “+” → /transactions/new → crea transacción y vuelve a /.
 
-Lleva a /transactions/new.
+Click en transacción → /transactions/[id] → editar o eliminar.
 
-Permite crear un gasto/ingreso, asignar categoría y etiquetas (nuevas o existentes).
+/wallets:
 
-Vuelve a / y actualiza el listado + totales + filtros.
+lista billeteras del usuario,
 
-Al tocar una transacción en la lista:
-
-Navega a /transactions/[id].
-
-Podés:
-
-Editar sus datos (tipo, monto, fecha, categoría, etiquetas, nota).
-
-Eliminarla.
-
-Al guardar o eliminar:
-
-Vuelve a / con los datos recalculados.
+permite seleccionar billetera activa y volver a /.
 
 📁 Estructura de carpetas (simplificada)
 txt
@@ -334,13 +330,15 @@ app/
         page.tsx                  # Registro
 
   (app)/
-    layout.tsx                    # Layout protegido (RequireAuth + diseño mobile)
-    page.tsx                      # Home autenticada (resumen + lista + filtros + selector de mes)
+    layout.tsx                    # Layout protegido (RequireAuth + WalletProvider + diseño mobile)
+    page.tsx                      # Home (resumen + lista + filtros + selector de mes)
+    wallets/
+      page.tsx                    # Lista/selección de billeteras
     transactions/
       new/
-        page.tsx                  # Pantalla de nueva transacción (usa TransactionFormScreen)
+        page.tsx                  # Nueva transacción (usa TransactionFormScreen)
       [id]/
-        page.tsx                  # Pantalla de edición/borrado de transacción (TransactionFormScreen)
+        page.tsx                  # Editar/eliminar transacción (TransactionFormScreen)
 
   layout.tsx                      # Root layout (AuthProvider + estilos globales)
   globals.css                     # Tailwind v4 (@import "tailwindcss")
@@ -348,17 +346,17 @@ app/
 components/
   AuthContext.tsx                 # Contexto de auth (session + user)
   RequireAuth.tsx                 # Protege rutas autenticadas
+  WalletContext.tsx               # WalletProvider + billetera activa
   transactions/
-    TransactionFormScreen.tsx     # Pantalla reutilizable para alta/edición de transacciones
+    TransactionFormScreen.tsx     # Form reutilizable (create/edit)
 
 hooks/
-  useCurrentWallet.ts             # Hook para obtener billetera actual
-  useMonthTransactions.ts         # Hook para transacciones del mes + resumen
-  useCategories.ts                # Hook para categorías de la billetera
-  useTags.ts                      # Hook para etiquetas de la billetera
+  useMonthTransactions.ts         # Transacciones del mes + resumen
+  useCategories.ts                # Categorías por billetera
+  useTags.ts                      # Etiquetas por billetera
 
 lib/
-  supabaseClient.ts               # Cliente de Supabase
+  supabaseClient.ts               # Cliente Supabase
 
 utils/
   date.ts                         # Helpers de fechas (rango de mes, label, fecha local hoy)
@@ -376,17 +374,19 @@ Service Worker y caching básico.
 Test de instalabilidad (Lighthouse / Chrome).
 
 Billeteras compartidas (v2)
-UI para ver todas las billeteras del usuario.
+Crear billeteras nuevas (UI + RPC atómica).
 
-Crear billeteras nuevas.
+Ver detalle de billetera (miembros / rol).
 
 Invitar miembros a una billetera (gestión de wallet_members).
 
-Roles y permisos sobre transacciones/categorías.
+MVP: invitaciones por código/link.
+
+Evolución: invitación por email con Edge Functions.
 
 Más analítica
 Gráficos por categoría / etiqueta.
 
 Presupuestos por categoría / billetera.
 
-Indicadores de tendencia (mes actual vs mes anterior, etc.).
+Indicadores de tendencia (mes actual vs mes anterior).

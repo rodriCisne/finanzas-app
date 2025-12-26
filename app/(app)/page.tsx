@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useCurrentWallet } from '@/hooks/useCurrentWallet';
+import { useWallets } from '@/components/WalletContext';
 import { useMonthTransactions } from '@/hooks/useMonthTransactions';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { getMonthLabel, getCurrentYearMonth } from '@/utils/date';
 import { useTags } from '@/hooks/useTags';
+import Link from 'next/link';
 
 
 function formatAmount(amount: number, currency: string) {
@@ -31,7 +33,7 @@ function formatDateLabel(dateStr: string) {
 
 export default function HomePage() {
   const router = useRouter();
-  const { wallet, loading: walletLoading } = useCurrentWallet();
+  const { currentWallet: wallet, loading: walletLoading } = useWallets();
 
   const { year: currentYear, month: currentMonth } = getCurrentYearMonth();
 
@@ -129,6 +131,9 @@ export default function HomePage() {
             <p className="text-xs text-slate-500">
               Moneda: {wallet.default_currency_code}
             </p>
+            <Link href="/wallets" className="text-sm text-slate-300 underline">
+              Cambiar
+            </Link>
           </div>
 
           <button
