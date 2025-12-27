@@ -9,6 +9,7 @@ export type Wallet = {
   name: string;
   default_currency_code: string;
   created_at?: string;
+  invite_code?: string;
 };
 
 type WalletContextValue = {
@@ -51,7 +52,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     // Traemos billeteras donde el user es miembro
     const { data, error } = await supabase
       .from('wallet_members')
-      .select('wallets(id,name,default_currency_code,created_at)')
+      .select('wallets(id,name,default_currency_code,created_at, invite_code)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 

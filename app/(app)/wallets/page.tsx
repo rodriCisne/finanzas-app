@@ -21,12 +21,21 @@ export default function WalletsPage() {
           <p className="text-xs text-slate-400">Elegí cuál querés usar ahora</p>
         </div>
 
-        <Link
-          href="/wallets/new"
-          className="rounded-md bg-emerald-500 px-3 py-2 text-sm font-semibold text-black"
-        >
-          + Nueva
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/wallets/new"
+            className="rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+          >
+            + Nueva
+          </Link>
+
+          <Link
+            href="/wallets/import"
+            className="rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-sm"
+          >
+            Importar
+          </Link>
+        </div>
       </header>
 
       {wallets.length === 0 ? (
