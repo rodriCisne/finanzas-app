@@ -3,10 +3,10 @@
 MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enfoque **mobile-first** y preparada para evolucionar hacia una **PWA**.
 
 ## 🚀 Tecnologías Principales
-- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+- **Framework:** [Next.js 16.1.2](https://nextjs.org/) (Parche de seguridad aplicado)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
-- **Lenguaje:** TypeScript (Tipado estricto y sin `any`)
+- **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
 
 ---
 
