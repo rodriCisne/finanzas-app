@@ -3,10 +3,10 @@
 MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enfoque **mobile-first** y preparada para evolucionar hacia una **PWA**.
 
 ## 🚀 Tecnologías Principales
-- **Framework:** [Next.js 15](https://nextjs.org/) (App Router)
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
-- **Lenguaje:** TypeScript
+- **Lenguaje:** TypeScript (Tipado estricto y sin `any`)
 
 ---
 
@@ -119,6 +119,16 @@ grant execute on function public.create_wallet(text, text) to authenticated;
 npm run dev
 ```
 Accede a [http://localhost:3000](http://localhost:3000).
+
+### 6. Verificar Build de producción
+Antes de desplegar, puedes verificar que todo compile correctamente:
+```bash
+npm run build
+```
+O correr el linter para asegurar la calidad del código:
+```bash
+npm run lint
+```
 
 ---
 

@@ -62,11 +62,14 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
-    
+
     const list =
-      (data ?? [])
-        .map((row: any) => row.wallets)
-        .filter(Boolean) as Wallet[];
+      (data as unknown as { wallets: Wallet | Wallet[] }[] ?? [])
+        .map((row) => {
+          const w = row.wallets;
+          return (Array.isArray(w) ? w[0] : w) as Wallet | null;
+        })
+        .filter((w): w is Wallet => w !== null);
 
     setWallets(list);
 

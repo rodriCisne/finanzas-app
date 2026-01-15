@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useCurrentWallet } from '@/hooks/useCurrentWallet';
 import { useWallets } from '@/components/WalletContext';
 import { useMonthTransactions } from '@/hooks/useMonthTransactions';
 import { supabase } from '@/lib/supabaseClient';
@@ -86,7 +85,7 @@ export default function HomePage() {
     );
   }
 
-  
+
 
   const goToPrevMonth = () => {
     setPeriod((prev) => {
@@ -109,14 +108,14 @@ export default function HomePage() {
 
 
   const monthLabel = getMonthLabel(year, month);
-  
+
 
   const filteredTransactions =
     selectedTagId === 'all'
       ? transactions
       : transactions.filter((t) =>
-          t.tags.some((tag) => tag.id === selectedTagId)
-        );
+        t.tags.some((tag) => tag.id === selectedTagId)
+      );
 
   return (
     <main className="min-h-screen flex flex-col relative">
@@ -190,9 +189,8 @@ export default function HomePage() {
                 Balance
               </p>
               <p
-                className={`text-lg font-bold text-right ${
-                  summary.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                }`}
+                className={`text-lg font-bold text-right ${summary.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                  }`}
               >
                 {formatAmount(summary.balance, wallet.default_currency_code)}
               </p>
@@ -209,11 +207,10 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setSelectedTagId('all')}
-              className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${
-                selectedTagId === 'all'
+              className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${selectedTagId === 'all'
                   ? 'bg-emerald-500 text-black border-emerald-400'
                   : 'bg-slate-900 text-slate-200 border-slate-700'
-              }`}
+                }`}
             >
               Todas
             </button>
@@ -224,11 +221,10 @@ export default function HomePage() {
                   key={tag.id}
                   type="button"
                   onClick={() => setSelectedTagId(tag.id)}
-                  className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${
-                    selected
+                  className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${selected
                       ? 'bg-emerald-500 text-black border-emerald-400'
                       : 'bg-slate-900 text-slate-200 border-slate-700'
-                  }`}
+                    }`}
                 >
                   {tag.name}
                 </button>
@@ -277,9 +273,8 @@ export default function HomePage() {
                   )}
                 </div>
                 <div
-                  className={`text-sm font-semibold ${
-                    t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
-                  }`}
+                  className={`text-sm font-semibold ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'
+                    }`}
                 >
                   {t.type === 'expense' ? '-' : '+'}{' '}
                   {formatAmount(t.amount, wallet.default_currency_code)}

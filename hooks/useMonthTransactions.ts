@@ -88,27 +88,31 @@ export function useMonthTransactions(walletId?: string, year?: number, month?: n
         return;
       }
 
+      type DbRow = {
+        id: string;
+        type: 'income' | 'expense';
+        amount: number;
+        date: string;
+        note: string | null;
+        category: { name: string } | null;
+        tags: { tag: { id: string; name: string } | null }[] | null;
+      };
+
       const mapped: Transaction[] =
-        (data ?? []).map((row: any) => {
+        (data as unknown as DbRow[] ?? []).map((row) => {
+          const rowTags = row.tags;
           const tags: Tag[] =
-            (row.tags ?? [])
-              .map((tt: any) => tt.tag)
-              .filter((t: any) => t)
-              .map(
-                (t: any) =>
-                  ({
-                    id: t.id,
-                    name: t.name,
-                  } as Tag)
-              ) ?? [];
+            (rowTags ?? [])
+              .map((tt) => tt.tag)
+              .filter((t): t is Tag => t !== null) ?? [];
 
           return {
-            id: row.id,
-            type: row.type,
+            id: row.id as string,
+            type: row.type as 'income' | 'expense',
             amount: Number(row.amount),
-            date: row.date,
-            note: row.note ?? null,
-            category_name: row.category?.name ?? null,
+            date: row.date as string,
+            note: (row.note as string) ?? null,
+            category_name: ((row.category as unknown) as { name: string } | null)?.name ?? null,
             tags,
           };
         }) ?? [];
