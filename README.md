@@ -45,6 +45,7 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Resumen Mensual**: Navegación fluída entre meses con cálculo automático de ingresos, gastos y balance.
 - **Gestión de Movimientos**: 
     - Formulario unificado (`TransactionFormScreen`) para crear, editar y eliminar.
+    - **Confirmación mejorada**: Los borrados se gestionan mediante un Modal personalizado en lugar de diálogos nativos.
     - Soporte para categorías y etiquetas múltiples.
     - Listado detallado con indicadores visuales por tipo de movimiento.
 
@@ -56,6 +57,7 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 
 ## 🎨 Diseño / UX
 - **Enfoque Mobile-first**: Limitación de ancho en desktop (`max-w-md`) para una experiencia consistente.
+- **Componentes UI Reutilizables**: Implementación de un sistema de **Modales modernos** con efecto *glassmorphism* (`backdrop-blur`) y variantes de estado (info, danger).
 - **Estética Moderna**: Modo oscuro (`bg-slate-950`), transiciones suaves y componentes optimizados.
 - **Usabilidad**: Botón de acción flotante (FAB) para acceso rápido a nuevas transacciones.
 
@@ -123,7 +125,8 @@ Accede a [http://localhost:3000](http://localhost:3000).
 ## 📁 Estructura del Proyecto
 ```text
 app/             # Rutas y layouts (Next.js App Router)
-components/      # Componentes UI y Contextos (Auth, Wallet)
+components/      # Componentes de negocio y Contextos
+  ui/            # Componentes de UI genéricos (Modal, etc.)
 hooks/           # Lógica reutilizable (Transacciones, Categorías)
 lib/             # Clientes de servicios externos (Supabase)
 utils/           # Funciones de utilidad (Fechas, Formateo)
