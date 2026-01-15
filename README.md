@@ -144,8 +144,24 @@ docs/            # Documentación técnica y esquemas SQL
 ```
 
 ---
+ 
+ ## 📱 PWA (Progressive Web App)
+ La aplicación está configurada para ser instalable en dispositivos móviles.
+ 
+ ### Estrategia de Despliegue (Build Híbrido)
+ Para evitar conflictos de compilación en entornos Windows locales con Next.js 16 (Turbopack), se ha implementado una lógica condicional en `next.config.mjs`:
+ - **Windows (Local)**: El plugin PWA se desactiva. `npm run build` funciona sin errores.
+ - **Linux (Vercel)**: El plugin PWA se activa automáticamente al detectar el SO, generando los Service Workers necesarios.
+ 
+ ### Cómo instalar en tu celular
+ 1. Asegúrate de que el despliegue en Vercel haya finalizado.
+ 2. Abre la URL de tu aplicación en el navegador.
+    - **Android (Chrome)**: Toca el menú (3 puntos) -> "Instalar aplicación".
+    - **iOS (Safari)**: Toca el botón "Compartir" -> "Agregar a Inicio".
+ 
+ ---
 
 ## 🗺️ Roadmap (Próximas fases)
-- [ ] **PWA**: Instalabilidad, Service Workers y caching offline.
+- [x] **PWA**: Instalabilidad y assets configurados (Activación automática en Vercel/Producción).
 - [ ] **Billeteras Compartidas (V2)**: Gestión de miembros, invitaciones por link/email.
 - [ ] **Analítica Avanzada**: Gráficos de tendencias, presupuestos por categoría y comparativas mensuales.
