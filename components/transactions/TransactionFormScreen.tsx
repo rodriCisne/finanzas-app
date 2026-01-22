@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import { getTodayLocalDateString } from '@/utils/date';
 import { Modal } from '@/components/ui/Modal';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 
 
 type Props = {
@@ -31,7 +32,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
   const { user } = useAuth();
   const { currentWallet: wallet, loading: walletLoading } = useWallets();
   const { categories, loading: categoriesLoading } = useCategories(wallet?.id);
-  const { tags, loading: tagsLoading, refetch: refetchTags } = useTags(
+  const { tags, loading: tagsLoading } = useTags(
     wallet?.id
   );
 
@@ -44,9 +45,6 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
   const [categoryId, setCategoryId] = useState<string | ''>('');
   const [note, setNote] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [newTagName, setNewTagName] = useState('');
-  const [tagCreating, setTagCreating] = useState(false);
-  const [tagError, setTagError] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -119,40 +117,6 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
     setSelectedTagIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
-
-  const handleCreateTag = async () => {
-    if (!wallet) return;
-    const name = newTagName.trim();
-    if (!name) return;
-
-    setTagCreating(true);
-    setTagError(null);
-
-    const { data, error } = await supabase
-      .from('tags')
-      .insert({
-        wallet_id: wallet.id,
-        name,
-      })
-      .select('id, name')
-      .single();
-
-    if (error) {
-      console.error('Error creando etiqueta', error);
-      setTagError(error.message);
-      setTagCreating(false);
-      return;
-    }
-
-    setNewTagName('');
-    setTagCreating(false);
-
-    await refetchTags();
-
-    if (data?.id) {
-      setSelectedTagIds((prev) => [...prev, data.id]);
-    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -336,38 +300,40 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
     mode === 'create' ? 'Nueva transacción' : 'Editar transacción';
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-50">
-      <header className="px-4 pt-6 pb-3 border-b border-slate-800 flex items-center justify-between">
+    <main className="min-h-screen bg-slate-950 text-slate-50 flex flex-col">
+      {/* HEADER */}
+      <header className="px-4 py-4 flex items-center justify-between sticky top-0 bg-slate-950 z-10">
         <button
           onClick={handleCancel}
-          className="text-sm text-slate-400 underline"
+          className="p-2 -ml-2 text-slate-400 hover:text-slate-200"
         >
-          {mode === 'create' ? 'Cancelar' : 'Volver'}
+          <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-base font-semibold">{title}</h1>
+        <h1 className="text-lg font-semibold">{title}</h1>
         {mode === 'edit' ? (
           <button
             onClick={handleDelete}
             disabled={submitting}
-            className="text-xs text-rose-400 underline disabled:opacity-60"
+            className="p-2 -mr-2 text-rose-400 hover:text-rose-300 disabled:opacity-60"
           >
-            Eliminar
+            <Trash2 className="w-5 h-5" />
           </button>
         ) : (
-          <div className="w-12" />
+          <div className="w-9" /> // Placeholder to center title
         )}
       </header>
 
-      <section className="px-4 py-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Tipo */}
-          <div className="flex gap-2 text-sm">
+      <section className="flex-1 px-4 pb-20 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+          {/* TIPO (Segmented Control) */}
+          <div className="p-1 bg-slate-900 rounded-xl flex">
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`flex-1 py-2 rounded-lg border text-center ${type === 'expense'
-                  ? 'bg-rose-500 text-black border-rose-400'
-                  : 'bg-slate-900 border-slate-700 text-slate-300'
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === 'expense'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
                 }`}
             >
               Gasto
@@ -375,75 +341,88 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`flex-1 py-2 rounded-lg border text-center ${type === 'income'
-                  ? 'bg-emerald-500 text-black border-emerald-400'
-                  : 'bg-slate-900 border-slate-700 text-slate-300'
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === 'income'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
                 }`}
             >
               Ingreso
             </button>
           </div>
 
-          {/* Monto */}
+          {/* MONTO */}
           <div>
-            <label className="block text-xs mb-1">
+            <label className="block text-xs uppercase tracking-wider text-slate-500 mb-2">
               Monto ({wallet.default_currency_code})
             </label>
             <input
               type="number"
               step="0.01"
               min="0"
+              inputMode="decimal"
+              autoFocus
               required
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+              placeholder="0.00"
+              className="w-full bg-transparent text-4xl font-bold text-slate-100 placeholder-slate-700 outline-none"
             />
           </div>
 
-          {/* Fecha */}
+          {/* FECHA */}
           <div>
-            <label className="block text-xs mb-1">Fecha</label>
+            <label className="block text-xs uppercase tracking-wider text-slate-500 mb-2">
+              Fecha
+            </label>
             <input
               type="date"
               required
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all"
             />
           </div>
 
-          {/* Categoría */}
+          {/* CATEGORÍA */}
           <div>
-            <label className="block text-xs mb-1">
-              Categoría ({categoriesLoading ? 'cargando...' : ''})
+            <label className="block text-xs uppercase tracking-wider text-slate-500 mb-2">
+              Categoría
             </label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:border-emerald-400"
-            >
-              <option value="">Sin categoría</option>
-              {filteredCategories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={categoriesLoading}
+                className="w-full appearance-none bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all disabled:opacity-50"
+              >
+                <option value="">Seleccionar categoría</option>
+                {filteredCategories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
 
-          {/* Etiquetas */}
+          {/* ETIQUETAS */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs">Etiquetas</label>
-              {(tagsLoading || tagCreating) && (
-                <span className="text-[10px] text-slate-500">
-                  {tagsLoading ? 'cargando...' : 'guardando...'}
-                </span>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs uppercase tracking-wider text-slate-500">
+                Etiquetas
+              </label>
+              {tagsLoading && (
+                <span className="text-[10px] text-slate-500">cargando...</span>
               )}
             </div>
 
             {tags.length > 0 ? (
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => {
                   const selected = selectedTagIds.includes(tag.id);
                   return (
@@ -451,9 +430,9 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
                       key={tag.id}
                       type="button"
                       onClick={() => toggleTag(tag.id)}
-                      className={`px-2 py-1 rounded-full text-[11px] border ${selected
-                          ? 'bg-emerald-500 text-black border-emerald-400'
-                          : 'bg-slate-900 text-slate-200 border-slate-700'
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selected
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                          : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700'
                         }`}
                     >
                       {tag.name}
@@ -462,63 +441,42 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
                 })}
               </div>
             ) : (
-              <p className="text-[11px] text-slate-500 mb-2">
-                Aún no tienes etiquetas para esta billetera.
-              </p>
-            )}
-
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                placeholder="Nombre de nueva etiqueta"
-                className="flex-1 rounded-md bg-slate-900 border border-slate-700 px-3 py-1.5 text-sm outline-none focus:border-emerald-400"
-              />
-              <button
-                type="button"
-                disabled={!newTagName.trim() || tagCreating}
-                onClick={handleCreateTag}
-                className="text-xs px-3 rounded-md bg-slate-800 border border-slate-600 text-slate-100 disabled:opacity-60"
-              >
-                {tagCreating ? 'Creando...' : 'Crear'}
-              </button>
-            </div>
-
-            {tagError && (
-              <p className="mt-1 text-[10px] text-red-400">{tagError}</p>
+              <div className="text-sm text-slate-500 italic p-2 bg-slate-900/50 rounded-lg">
+                No hay etiquetas disponibles.
+              </div>
             )}
           </div>
 
-          {/* Nota */}
+          {/* NOTA */}
           <div>
-            <label className="block text-xs mb-1">Nota (opcional)</label>
+            <label className="block text-xs uppercase tracking-wider text-slate-500 mb-2">
+              Nota (opcional)
+            </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={3}
-              className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:border-emerald-400"
+              placeholder="Escribe una nota..."
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all resize-none"
             />
           </div>
 
           {errorMsg && (
-            <p className="text-xs text-red-400 bg-red-950/40 border border-red-800 rounded-md px-3 py-2">
+            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm">
               {errorMsg}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-md bg-emerald-500 text-black font-semibold py-2 text-sm disabled:opacity-60"
+            className="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-slate-950 font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:active:scale-100 shadow-lg shadow-emerald-500/20"
           >
             {submitting
-              ? mode === 'create'
-                ? 'Guardando...'
-                : 'Guardando cambios...'
+              ? 'Guardando...'
               : mode === 'create'
-                ? 'Guardar transacción'
-                : 'Guardar cambios'}
+                ? 'Guardar Transacción'
+                : 'Guardar Cambios'}
           </button>
         </form>
       </section>
@@ -528,7 +486,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDelete}
         title="¿Eliminar transacción?"
-        description="Esta acción no se puede deshacer. Los datos de este movimiento se perderán permanentemente."
+        description="Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         cancelLabel="Cancelar"
         variant="danger"

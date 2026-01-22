@@ -43,9 +43,10 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 
 #### 💳 Transacciones
 - **Resumen Mensual**: Navegación fluída entre meses con cálculo automático de ingresos, gastos y balance.
-- **Gestión de Movimientos**: 
-    - Formulario unificado (`TransactionFormScreen`) para crear, editar y eliminar.
-    - **Confirmación mejorada**: Los borrados se gestionan mediante un Modal personalizado en lugar de diálogos nativos.
+    - **Identificación de Responsable**: Cada movimiento muestra el nombre del usuario que lo registró, ideal para billeteras compartidas.
+    - **Filtros e Inteligencia**:
+        - Filtros rápidos por Usuario y Etiquetas con chips interactivos.
+        - **Totales Dinámicos**: El balance mensual, ingresos y gastos se recalculan automáticamente al aplicar filtros, permitiendo saber cuánto gastó cada persona al instante.
     - Soporte para categorías y etiquetas múltiples.
     - Listado detallado con indicadores visuales por tipo de movimiento.
 
@@ -112,6 +113,11 @@ end;
 $$;
 
 grant execute on function public.create_wallet(text, text) to authenticated;
+
+-- 4. Corregir relación de transacciones con perfiles (para ver nombres)
+alter table public.transactions drop constraint if exists transactions_created_by_fkey;
+alter table public.transactions add constraint transactions_created_by_fkey 
+  foreign key (created_by) references public.profiles(id);
 ```
 
 ### 5. Iniciar el servidor de desarrollo

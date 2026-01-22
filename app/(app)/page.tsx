@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useWallets } from '@/components/WalletContext';
 import { useMonthTransactions } from '@/hooks/useMonthTransactions';
 import { supabase } from '@/lib/supabaseClient';
@@ -51,8 +51,41 @@ export default function HomePage() {
   } = useMonthTransactions(wallet?.id, year, month);
 
   const [selectedTagId, setSelectedTagId] = useState<string | 'all'>('all');
+  const [selectedUserName, setSelectedUserName] = useState<string | 'all'>('all');
 
   const { tags: allTags } = useTags(wallet?.id);
+
+  // Extraer usuarios únicos de las transacciones cargadas
+  const usersInMonth = useMemo(() => {
+    const names = new Set<string>();
+    transactions.forEach(t => {
+      if (t.created_by_name) names.add(t.created_by_name);
+    });
+    return Array.from(names).sort();
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((t) => {
+      const matchTag = selectedTagId === 'all' || t.tags.some((tag) => tag.id === selectedTagId);
+      const matchUser = selectedUserName === 'all' || t.created_by_name === selectedUserName;
+      return matchTag && matchUser;
+    });
+  }, [transactions, selectedTagId, selectedUserName]);
+
+  // Resumen dinámico basado en los filtros aplicados
+  const displaySummary = useMemo(() => {
+    return filteredTransactions.reduce((acc, t) => {
+      if (t.type === 'income') {
+        acc.income += t.amount;
+      } else {
+        acc.expense += t.amount;
+      }
+      acc.balance = acc.income - acc.expense;
+      return acc;
+    }, { income: 0, expense: 0, balance: 0 });
+  }, [filteredTransactions]);
+
+  const monthLabel = getMonthLabel(year, month);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -61,6 +94,24 @@ export default function HomePage() {
 
   const handleNewTransaction = () => {
     router.push('/transactions/new');
+  };
+
+  const goToPrevMonth = () => {
+    setPeriod((prev) => {
+      if (prev.month === 1) {
+        return { year: prev.year - 1, month: 12 };
+      }
+      return { year: prev.year, month: prev.month - 1 };
+    });
+  };
+
+  const goToNextMonth = () => {
+    setPeriod((prev) => {
+      if (prev.month === 12) {
+        return { year: prev.year + 1, month: 1 };
+      }
+      return { year: prev.year, month: prev.month + 1 };
+    });
   };
 
   if (walletLoading) {
@@ -86,38 +137,6 @@ export default function HomePage() {
       </main>
     );
   }
-
-
-
-  const goToPrevMonth = () => {
-    setPeriod((prev) => {
-      if (prev.month === 1) {
-        return { year: prev.year - 1, month: 12 };
-      }
-      return { year: prev.year, month: prev.month - 1 };
-    });
-  };
-
-  const goToNextMonth = () => {
-    setPeriod((prev) => {
-      if (prev.month === 12) {
-        return { year: prev.year + 1, month: 1 };
-      }
-      return { year: prev.year, month: prev.month + 1 };
-    });
-  };
-
-
-
-  const monthLabel = getMonthLabel(year, month);
-
-
-  const filteredTransactions =
-    selectedTagId === 'all'
-      ? transactions
-      : transactions.filter((t) =>
-        t.tags.some((tag) => tag.id === selectedTagId)
-      );
 
   return (
     <main className="min-h-screen flex flex-col relative">
@@ -178,8 +197,8 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col gap-1 mb-6">
-              <h2 className={`text-4xl font-bold tracking-tight ${summary.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
-                {formatCurrency(summary.balance, wallet.default_currency_code)}
+              <h2 className={`text-4xl font-bold tracking-tight ${displaySummary.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                {formatCurrency(displaySummary.balance, wallet.default_currency_code)}
               </h2>
             </div>
 
@@ -193,7 +212,7 @@ export default function HomePage() {
                   <span className="text-[10px] font-bold uppercase opacity-80">Ingresos</span>
                 </div>
                 <p className="text-sm font-bold text-slate-200">
-                  {formatCurrency(summary.income, wallet.default_currency_code)}
+                  {formatCurrency(displaySummary.income, wallet.default_currency_code)}
                 </p>
               </div>
 
@@ -206,7 +225,7 @@ export default function HomePage() {
                   <span className="text-[10px] font-bold uppercase opacity-80">Gastos</span>
                 </div>
                 <p className="text-sm font-bold text-slate-200">
-                  {formatCurrency(summary.expense, wallet.default_currency_code)}
+                  {formatCurrency(displaySummary.expense, wallet.default_currency_code)}
                 </p>
               </div>
             </div>
@@ -216,37 +235,77 @@ export default function HomePage() {
 
       {/* Lista de transacciones + filtros */}
       <section className="flex-1 p-4 pb-20">
-        {/* Barra de filtros por etiqueta */}
-        {allTags.length > 0 && (
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-            <button
-              type="button"
-              onClick={() => setSelectedTagId('all')}
-              className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${selectedTagId === 'all'
-                ? 'bg-emerald-500 text-black border-emerald-400'
-                : 'bg-slate-900 text-slate-200 border-slate-700'
-                }`}
-            >
-              Todas
-            </button>
-            {allTags.map((tag) => {
-              const selected = selectedTagId === tag.id;
-              return (
+        <div className="space-y-4 mb-4">
+          {/* Barra de filtros por usuario */}
+          {usersInMonth.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 ml-1">Por Usuario</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <button
-                  key={tag.id}
                   type="button"
-                  onClick={() => setSelectedTagId(tag.id)}
-                  className={`px-3 py-1 rounded-full text-xs border whitespace-nowrap ${selected
-                    ? 'bg-emerald-500 text-black border-emerald-400'
-                    : 'bg-slate-900 text-slate-200 border-slate-700'
+                  onClick={() => setSelectedUserName('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selectedUserName === 'all'
+                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
+                    : 'bg-slate-900 text-slate-400 border-slate-800'
                     }`}
                 >
-                  {tag.name}
+                  Todos
                 </button>
-              );
-            })}
-          </div>
-        )}
+                {usersInMonth.map((name) => {
+                  const selected = selectedUserName === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setSelectedUserName(name)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selected
+                        ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
+                        : 'bg-slate-900 text-slate-400 border-slate-800'
+                        }`}
+                    >
+                      {name.split(' ')[0]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Barra de filtros por etiqueta */}
+          {allTags.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 ml-1">Por Etiqueta</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTagId('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selectedTagId === 'all'
+                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
+                    : 'bg-slate-900 text-slate-400 border-slate-800'
+                    }`}
+                >
+                  Todas
+                </button>
+                {allTags.map((tag) => {
+                  const selected = selectedTagId === tag.id;
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => setSelectedTagId(tag.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selected
+                        ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
+                        : 'bg-slate-900 text-slate-400 border-slate-800'
+                        }`}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
 
         {txLoading ? (
@@ -264,9 +323,16 @@ export default function HomePage() {
                 className="flex items-center justify-between rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5 cursor-pointer hover:border-emerald-500/60 transition-colors"
               >
                 <div className="flex flex-col">
-                  <span className="text-xs text-slate-400">
-                    {formatDateLabel(t.date)}
-                  </span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-slate-400">
+                      {formatDateLabel(t.date)}
+                    </span>
+                    {t.created_by_name && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                        {t.created_by_name.split(' ')[0]}
+                      </span>
+                    )}
+                  </div>
                   <span className="text-sm font-medium">
                     {t.category_name ?? 'Sin categoría'}
                   </span>

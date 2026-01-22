@@ -16,6 +16,7 @@ export type Transaction = {
   date: string; // 'YYYY-MM-DD'
   note: string | null;
   category_name: string | null;
+  created_by_name: string | null;
   tags: Tag[];
 };
 
@@ -65,6 +66,9 @@ export function useMonthTransactions(walletId?: string, year?: number, month?: n
           category:categories (
             name
           ),
+          creator:profiles (
+            full_name
+          ),
           tags:transaction_tags (
             tag:tags (
               id,
@@ -95,6 +99,7 @@ export function useMonthTransactions(walletId?: string, year?: number, month?: n
         date: string;
         note: string | null;
         category: { name: string } | null;
+        creator: { full_name: string | null } | null;
         tags: { tag: { id: string; name: string } | null }[] | null;
       };
 
@@ -113,6 +118,7 @@ export function useMonthTransactions(walletId?: string, year?: number, month?: n
             date: row.date as string,
             note: (row.note as string) ?? null,
             category_name: ((row.category as unknown) as { name: string } | null)?.name ?? null,
+            created_by_name: row.creator?.full_name ?? null,
             tags,
           };
         }) ?? [];
