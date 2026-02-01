@@ -40,6 +40,7 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
     - Listado y selección en `/(app)/wallets`.
     - Creación con moneda personalizada en `/(app)/wallets/new`.
     - Edición de propiedades y visualización de `invite_code` en `/(app)/wallets/[id]/edit`.
+    - **CRUD de Categorías**: Gestión completa (Crear, Editar, Eliminar) de categorías personalizadas por billetera desde la pantalla de edición.
 
 #### 💳 Transacciones
 - **Resumen Mensual**: Navegación fluída entre meses con cálculo automático de ingresos, gastos y balance.
