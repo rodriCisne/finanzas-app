@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
                                             cursor={{ fill: '#ffffff10' }}
                                             contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '12px', color: '#f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)' }}
                                             itemStyle={{ color: '#f1f5f9' }}
-                                            formatter={(val: number) => [formatCurrency(val), '']}
+                                            formatter={(val: number | string | undefined) => [formatCurrency(Number(val ?? 0)), '']}
                                         />
                                         <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} name="Ingresos">
                                             <LabelList
@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
                                                 position="top"
                                                 fontSize={9}
                                                 fill="#10b981"
-                                                formatter={(v: number) => v > 0 ? formatCompactValue(v) : ''}
+                                                formatter={(v: any) => (v && Number(v) > 0) ? formatCompactValue(Number(v)) : ''}
                                             />
                                         </Bar>
                                         <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} name="Gastos">
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
                                                 position="top"
                                                 fontSize={9}
                                                 fill="#ef4444"
-                                                formatter={(v: number) => v > 0 ? formatCompactValue(v) : ''}
+                                                formatter={(v: any) => (v && Number(v) > 0) ? formatCompactValue(Number(v)) : ''}
                                             />
                                         </Bar>
                                     </BarChart>
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
                                         <Tooltip
                                             contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', fontSize: '12px', color: '#f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)' }}
                                             itemStyle={{ color: '#f1f5f9' }}
-                                            formatter={(value: number, name: string) => [formatCurrency(value), `Categoría: ${name}`]}
+                                            formatter={(value: number | string | undefined, name: any) => [formatCurrency(Number(value ?? 0)), name]}
                                         />
                                         <Legend
                                             verticalAlign="bottom"
