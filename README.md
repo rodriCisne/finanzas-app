@@ -7,6 +7,7 @@ MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enf
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
 - **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
+- **Gráficos:** [Recharts](https://recharts.org/)
 
 ---
 
@@ -40,6 +41,7 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
     - Listado y selección en `/(app)/wallets`.
     - Creación con moneda personalizada en `/(app)/wallets/new`.
     - Edición de propiedades y visualización de `invite_code` en `/(app)/wallets/[id]/edit`.
+    - **CRUD de Categorías**: Gestión completa (Crear, Editar, Eliminar) de categorías personalizadas por billetera desde la pantalla de edición.
 
 #### 💳 Transacciones
 - **Resumen Mensual**: Navegación fluída entre meses con cálculo automático de ingresos, gastos y balance.
@@ -53,6 +55,14 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 #### 🏷️ Etiquetas y Filtros
 - Creación de etiquetas *on-the-fly* desde el formulario.
 - Filtrado dinámico en la Home mediante chips interactivos.
+
+#### 📊 Analítica y Visualización
+- **Dashboard Interactivo**: Nueva pantalla dedicada a la visualización de datos financieros.
+- **Granularidad Dinámica**: Gráficos de barras que muestran gastos por día (vista mensual) o por mes (vista anual).
+- **Filtros Personalizados**: Capacidad de filtrar todos los gráficos por Categoría y Usuario encargado del gasto.
+- **Distribución de Gastos**: Gráfico de torta interactivo para entender la composición de los egresos.
+- **Control de Gastos por Persona**: Visualización clara de cuánto ha gastado cada miembro en billeteras compartidas.
+- **UX Optimizada**: Scroll lateral automático para ver los datos más recientes y etiquetas compactas (K/M) para mayor claridad.
 
 ---
 
@@ -169,5 +179,5 @@ docs/            # Documentación técnica y esquemas SQL
 
 ## 🗺️ Roadmap (Próximas fases)
 - [x] **PWA**: Instalabilidad y assets configurados (Activación automática en Vercel/Producción).
+- [x] **Analítica**: Dashboard interactivo con gráficos comparativos, filtros y desglose por usuario.
 - [ ] **Billeteras Compartidas (V2)**: Gestión de miembros, invitaciones por link/email.
-- [ ] **Analítica Avanzada**: Gráficos de tendencias, presupuestos por categoría y comparativas mensuales.

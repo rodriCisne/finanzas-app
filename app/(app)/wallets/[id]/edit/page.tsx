@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useWallets } from '@/components/WalletContext';
+import CategoryManager from '@/components/wallets/CategoryManager';
 
 const CURRENCIES = ['ARS', 'USD', 'EUR'];
 
@@ -133,29 +134,29 @@ export default function EditWalletPage() {
           </select>
         </div>
         <div className="space-y-1">
-        <label className="text-sm text-slate-200">Código para compartir</label>
+          <label className="text-sm text-slate-200">Código para compartir</label>
 
-        <div className="flex gap-2">
+          <div className="flex gap-2">
             <input
-            value={wallet.invite_code ?? ''}
-            readOnly
-            className="flex-1 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-slate-50"
+              value={wallet.invite_code ?? ''}
+              readOnly
+              className="flex-1 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-slate-50"
             />
             <button
-            type="button"
-            onClick={async () => {
+              type="button"
+              onClick={async () => {
                 if (!wallet.invite_code) return;
                 await navigator.clipboard.writeText(wallet.invite_code);
-            }}
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-100"
+              }}
+              className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-100"
             >
-            Copiar
+              Copiar
             </button>
-        </div>
+          </div>
 
-        <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500">
             Compártelo con quien quieras. Al importarlo, el usuario quedará como <b>member</b>.
-        </p>
+          </p>
         </div>
         {errorMsg && (
           <p className="rounded-lg border border-red-900 bg-red-950 px-3 py-2 text-sm text-red-200">
@@ -180,6 +181,9 @@ export default function EditWalletPage() {
           Eliminar billetera
         </button>
       </form>
+
+      {/* CRUD de categorías */}
+      <CategoryManager walletId={walletId} />
     </main>
   );
 }
