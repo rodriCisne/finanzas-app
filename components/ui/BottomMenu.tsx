@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Wallet, User } from 'lucide-react';
+import { Home, Wallet, User, BarChart3 } from 'lucide-react';
 
 export function BottomMenu() {
     const pathname = usePathname();
@@ -19,6 +19,15 @@ export function BottomMenu() {
                 >
                     <Home size={24} strokeWidth={isActive('/') ? 2.5 : 2} />
                     <span className="text-[10px] font-medium">Inicio</span>
+                </Link>
+
+                <Link
+                    href="/analytics"
+                    className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${isActive('/analytics') ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                >
+                    <BarChart3 size={24} strokeWidth={isActive('/analytics') ? 2.5 : 2} />
+                    <span className="text-[10px] font-medium">Analítica</span>
                 </Link>
 
                 <Link
