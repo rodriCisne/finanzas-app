@@ -3,7 +3,7 @@
 MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enfoque **mobile-first** y preparada para evolucionar hacia una **PWA**.
 
 ## 🚀 Tecnologías Principales
-- **Framework:** [Next.js 16.1.2](https://nextjs.org/) (Parche de seguridad aplicado)
+- **Framework:** [Next.js 16.1.6](https://nextjs.org/) (Parche de seguridad aplicado)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
 - **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
@@ -63,6 +63,12 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Distribución de Gastos**: Gráfico de torta interactivo para entender la composición de los egresos.
 - **Control de Gastos por Persona**: Visualización clara de cuánto ha gastado cada miembro en billeteras compartidas.
 - **UX Optimizada**: Scroll lateral automático para ver los datos más recientes y etiquetas compactas (K/M) para mayor claridad.
+
+#### 💘 San Valentín Recap (Seasonal)
+- **Instagram-style Stories**: Visualización fluida de momentos especiales con animaciones premium (`framer-motion`).
+- **Lógica Inteligente**: Se muestra automáticamente el 14 de febrero a usuarios con billeteras compartidas.
+- **Persistencia**: Control de "visto" mediante Supabase para mostrarlo solo una vez por día.
+- **Modo Pruebas**: Capacidad de activar `TEST_MODE` para QA fuera de fecha.
 
 ---
 
