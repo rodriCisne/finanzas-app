@@ -181,3 +181,22 @@ docs/            # Documentación técnica y esquemas SQL
 - [x] **PWA**: Instalabilidad y assets configurados (Activación automática en Vercel/Producción).
 - [x] **Analítica**: Dashboard interactivo con gráficos comparativos, filtros y desglose por usuario.
 - [ ] **Billeteras Compartidas (V2)**: Gestión de miembros, invitaciones por link/email.
+
+---
+
+## 🤖 Agente y Automatización
+Este proyecto utiliza **Antigravity** con un conjunto de "Skills" y "Workflows" personalizados para asegurar la calidad y velocidad de desarrollo.
+
+### 🛠️ Agent Skills (Instaladas localmente)
+Hemos dotado al agente de capacidades especializadas en:
+- **Supabase & Postgres**: Mejores prácticas en modelado y RLS.
+- **Next.js App Router**: Patrones avanzados de arquitectura.
+- **E2E Testing**: Estrategias de pruebas robustas.
+- **UI & Animations**: Componentes "Premium" basados en Ibelick UI.
+- **Edge Functions**: Integraciones seguras con servicios externos.
+- **Doc Management**: Control y calidad de documentación.
+
+### 🔄 Workflows Personalizados
+Para mantener el repo limpio y funcional, utilizamos el comando:
+- **`/safe-commit`**: Ejecuta automáticamente `npm run build`, verifica que la documentación esté al día y solicita confirmación del mensaje de commit antes de subir cambios.
+- [ ] **Feature san valentin - wrapped del año y fotos sorpresa en UI de nueva transaccion **: Hacer una especie de wrapped de spotify sólo con 6 fotos nuestras y luego tener también en la pantalla de nueva transaccion una foto sorpresa que se elija aleatoriamente de entre las 1000 que hay en un albun de google photos.
