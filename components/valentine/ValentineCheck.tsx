@@ -13,7 +13,11 @@ export default function ValentineCheck() {
         async function init() {
             if (checked) return;
 
-            const TEST_MODE = false; // 💘 Disabled for production
+            // Check for force override in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const forceValentine = urlParams.get('valentine') === 'true';
+
+            const TEST_MODE = forceValentine; // 💘 Enabled via URL for testing
 
             const now = new Date();
             const isValentineDay = now.getMonth() === 1 && now.getDate() === 14; // Month is 0-indexed (1 = Feb)

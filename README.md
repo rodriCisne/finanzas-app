@@ -68,7 +68,14 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Instagram-style Stories**: Visualización fluida de momentos especiales con animaciones premium (`framer-motion`).
 - **Lógica Inteligente**: Se muestra automáticamente el 14 de febrero a usuarios con billeteras compartidas.
 - **Persistencia**: Control de "visto" mediante Supabase para mostrarlo solo una vez por día.
-- **Modo Pruebas**: Capacidad de activar `TEST_MODE` para QA fuera de fecha.
+- **Modo Pruebas**: Capacidad de activar el modo debug añadiendo `?valentine=true` a la URL.
+
+#### 📸 Confirmación de Gastos (Emotional UX)
+- **Feedback Emocional**: Al guardar un gasto, se muestra una "Recompensa Visual" en lugar de un simple toast.
+- **Contenido Dinámico**:
+    - **Fotos**: Se obtiene una imagen aleatoria desde el bucket `fotosRodricu/random-moments`.
+    - **Frases**: Se selecciona una frase aleatoria del diccionario personal (`phrases.json`).
+- **Diseño Inmersivo**: Modal pantalla completa con fondo borroso y texto legible sobre la imagen.
 
 ---
 
