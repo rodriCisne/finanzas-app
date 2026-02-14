@@ -17,10 +17,12 @@ export default function ValentineCheck() {
             const urlParams = new URLSearchParams(window.location.search);
             const forceValentine = urlParams.get('valentine') === 'true';
 
-            const TEST_MODE = forceValentine; // 💘 Enabled via URL for testing
+            const TEST_MODE = true; // 💘 Enabled permanently as per user request
 
             const now = new Date();
-            const isValentineDay = now.getMonth() === 1 && now.getDate() === 14; // Month is 0-indexed (1 = Feb)
+            // Create a date object for Argentina time
+            const argentinaTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" }));
+            const isValentineDay = argentinaTime.getMonth() === 1 && argentinaTime.getDate() === 14; // Month is 0-indexed (1 = Feb)
 
             if (!isValentineDay && !TEST_MODE) {
                 console.log('Not Valentine\'s Day yet');
@@ -38,6 +40,8 @@ export default function ValentineCheck() {
             }
 
             // 1. Check Impressions (Already seen this year?)
+            /* 
+            // 💘 Disabled to allow multiple views on Valentine's Day
             const currentYear = new Date().getFullYear();
             const { data: impression } = await supabase
                 .from('valentine_impressions')
@@ -54,6 +58,7 @@ export default function ValentineCheck() {
                 }
                 console.log('🚧 TEST_MODE: Ignoring "already seen"');
             }
+            */
 
             // 2. Check Shared Wallet
             const { data: memberships } = await supabase
