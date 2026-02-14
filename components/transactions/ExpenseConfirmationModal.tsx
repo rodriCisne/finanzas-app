@@ -19,14 +19,17 @@ interface Phrase {
 
 export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmationModalProps) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [originalUrl, setOriginalUrl] = useState<string | null>(null);
     const [phrase, setPhrase] = useState<Phrase | null>(null);
     const [loading, setLoading] = useState(true);
+    const [useFallback, setUseFallback] = useState(false);
 
     useEffect(() => {
         if (!isOpen) return;
 
         async function loadContent() {
             setLoading(true);
+            setUseFallback(false);
             try {
                 // 1. Pick Random Phrase
                 const randomPhrase = phrasesData[Math.floor(Math.random() * phrasesData.length)];
@@ -54,6 +57,8 @@ export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmatio
                             .from('fotosRodricu')
                             .getPublicUrl(`random-moments/${randomFile.name}`);
 
+                        setOriginalUrl(publicUrl);
+
                         // 🚀 Optimize Image using Supabase Image Transformation API
                         // Standard: .../storage/v1/object/public/...
                         // Optimal:  .../storage/v1/render/image/public/...
@@ -72,6 +77,8 @@ export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmatio
         loadContent();
     }, [isOpen]);
 
+    const displayUrl = useFallback ? originalUrl : imageUrl;
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -82,10 +89,10 @@ export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmatio
                     className="fixed inset-0 z-50 flex flex-col bg-black"
                 >
                     {/* Blurred Background for immersive feel */}
-                    {imageUrl && (
+                    {displayUrl && (
                         <div
                             className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
-                            style={{ backgroundImage: `url(${imageUrl})` }}
+                            style={{ backgroundImage: `url(${displayUrl})` }}
                         />
                     )}
 
@@ -93,15 +100,19 @@ export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmatio
                     <div className="flex-1 relative flex items-center justify-center overflow-hidden">
                         {loading ? (
                             <Loader2 className="w-12 h-12 text-white/50 animate-spin" />
-                        ) : imageUrl ? (
+                        ) : displayUrl ? (
                             <motion.img
-                                key={imageUrl}
-                                src={imageUrl}
+                                key={displayUrl}
+                                src={displayUrl}
                                 alt="Random Memory"
                                 initial={{ scale: 1.1, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ duration: 0.8 }}
                                 className="w-full h-full object-contain relative z-10 shadow-2xl"
+                                onError={() => {
+                                    console.warn('Optimized image failed to load, falling back to original.');
+                                    setUseFallback(true);
+                                }}
                             />
                         ) : null}
                     </div>
