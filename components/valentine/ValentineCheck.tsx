@@ -115,42 +115,95 @@ export default function ValentineCheck() {
 }
 
 function getMockStories(): ValentineStory[] {
+    const PROJECT_REF = 'xgdmipmjonjikyxtfaxn';
+    const BUCKET = 'valentine-assets';
+    // -----------------------------------------------------------------------------------------
+    // INSTRUCCIONES:
+    // 1. Las imágenes se cargan desde tu Supabase Storage.
+    // 2. Asegúrate de que las fotos en el bucket se llamen PyH1, PyH2, ..., PyH10.
+    // 3. Si tus fotos tienen extensión (ej: .jpg, .png), agrégala en la variable 'EXT'.
+    // -----------------------------------------------------------------------------------------
+    const EXT = '.png'; // Ajustado según tu ejemplo
+
+    const getImg = (id: string) =>
+        `https://${PROJECT_REF}.supabase.co/storage/v1/object/public/${BUCKET}/PyH${id}${EXT}`;
+
     return [
         {
             id: '1', order_index: 1, year: 2026,
             title: 'Hola amor ❤️',
-            description: 'Tenía preparada una sorpresa especial para hoy...',
-            image_path: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=2000'
+            description: 'Pato & Huevito Nuestra historia de amor. 💚',
+            image_path: getImg('1')
         },
         {
             id: '2', order_index: 2, year: 2026,
-            title: 'Nuestro año',
-            description: 'Pasamos por tantas cosas juntos este año...',
-            image_path: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=2000'
+            title: 'Match',
+            description: 'Un match, un chat… y de repente: vermouth en MalaSangre y ganas de volver a vernos.',
+            image_path: getImg('2')
         },
         {
             id: '3', order_index: 3, year: 2026,
-            title: 'Momentos únicos',
-            description: 'Risas, salidas y esos pequeños detalles.',
-            image_path: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=2000'
+            title: 'Momento clave',
+            description: 'En esa lancha, con el río alrededor y mis amigos mirando… yo ya lo sabía: vos ibas a ser mi novia.',
+            image_path: getImg('3')
         },
         {
             id: '4', order_index: 4, year: 2026,
-            title: 'Compartir es amar',
-            description: 'Incluso cuando compartimos los gastos en esta app 😅',
-            image_path: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2000'
+            title: 'La propuesta',
+            description: 'Bajo las estrellas, el Huevito se animó a preguntar…y el Patito dijo sí: “somos nosotros”',
+            image_path: getImg('4')
         },
         {
             id: '5', order_index: 5, year: 2026,
-            title: 'Te elijo',
-            description: 'Te volvería a elegir una y mil veces más.',
-            image_path: 'https://images.unsplash.com/photo-1518621736915-f3b1c41bfd00?q=80&w=2000'
+            title: 'Los viajes',
+            description: 'Y ahí entendí que viajar con vos… es mi forma favorita de vivir.',
+            image_path: getImg('5')
         },
         {
             id: '6', order_index: 6, year: 2026,
-            title: 'Feliz San Valentín',
-            description: 'Te amo hasta el infinito. ❤️',
-            image_path: 'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?q=80&w=2000'
+            title: 'Casi Ruptura',
+            description: 'Nos dolió. Nos asustó. Casi nos rompe. Pero al final hicimos lo más valiente: elegirnos y aprender.',
+            image_path: getImg('6')
+        },
+        {
+            id: '7', order_index: 7, year: 2026,
+            title: 'Juntos es mejor',
+            description: 'El mundo cambió de paisaje, pero no de plan: vos y yo.',
+            image_path: getImg('7')
+        },
+        {
+            id: '8', order_index: 8, year: 2026,
+            title: 'Convivencia',
+            description: 'Descubrimos que separados es peor. Así que armamos nido: cajas, abrazos…',
+            image_path: getImg('8')
+        },
+        {
+            id: '9', order_index: 9, year: 2026,
+            title: 'Diferencias',
+            description: 'Vos sentís todo. Yo a veces me cuelgo demasiado. Nos molestamos un poquito… y nos amamos un montón',
+            image_path: getImg('9')
+        },
+        {
+            id: '10', order_index: 10, year: 2026,
+            title: 'Por siempre',
+            description: `Hoy quiero decirte que de estos últimos casi 4 años juntos, no cambiaría nada. Que te amo como nunca amé a nadie.
+
+Quién hubiera dicho que después de prometerme varias veces nunca convivir más con nadie, terminaríamos construyendo este hogar juntos, entre mudanzas intensas, cajas de cartón y nuestro peachito.
+
+Quiero que sepas que valoro cada detalle de nuestra relación: desde tus “mimitos” cuando vuelvo roto del pádel, nuestros momentos de chillazo, nuestras jodas locas, viajes, nuestras cenas de “fiderricos” o sushito viendo alguna serie.
+
+Quiero que sepas que, a pesar de que a veces me cuesta expresarme con palabras, intento que entiendas que me haces muy bien, me encanta vivir con vos, charlar con vos, salir de joda con vos, viajar con vos, hacerte chistes, molestarte, abrazarte, quererte, besarte.
+
+Sos una persona increible, mucho mejor que yo y me enseñas a ser mejor cada día.
+
+Gracias por cuidarme cuando estoy “cachuso” y por bancar mis colgadas.
+
+Sos el pato más lindo de este mundo y yo siempre voy a ser tu huevito.
+
+Como te dije una vez, te amo...y quiero que sientas eso.
+
+Tu huevo, Rodri.`,
+            image_path: getImg('10')
         }
     ];
 }

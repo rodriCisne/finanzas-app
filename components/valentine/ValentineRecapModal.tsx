@@ -25,7 +25,6 @@ const DURATION_PER_SLIDE = 6000; // 6 seconds
 
 export default function ValentineRecapModal({ stories, isOpen, onClose }: ValentineRecapModalProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [isPaused, setIsPaused] = useState(false);
 
     // Handle closing - mark as seen
     const handleClose = useCallback(async () => {
@@ -53,19 +52,7 @@ export default function ValentineRecapModal({ stories, isOpen, onClose }: Valent
     }, [onClose]);
 
     // Timer logic
-    useEffect(() => {
-        if (!isOpen || isPaused) return;
-
-        const timer = setTimeout(() => {
-            if (currentIndex < stories.length - 1) {
-                setCurrentIndex(prev => prev + 1);
-            } else {
-                handleClose();
-            }
-        }, DURATION_PER_SLIDE);
-
-        return () => clearTimeout(timer);
-    }, [currentIndex, isOpen, isPaused, stories.length, handleClose]);
+    // Timer removed for manual navigation
 
     const nextSlide = (e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -126,15 +113,9 @@ export default function ValentineRecapModal({ stories, isOpen, onClose }: Valent
                                     <div key={idx} className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden">
                                         <motion.div
                                             className="h-full bg-white"
-                                            initial={{ width: idx < currentIndex ? '100%' : '0%' }}
-                                            animate={{
-                                                width: idx < currentIndex ? '100%' :
-                                                    idx === currentIndex ? '100%' : '0%'
-                                            }}
-                                            transition={{
-                                                duration: idx === currentIndex ? DURATION_PER_SLIDE / 1000 : 0,
-                                                ease: 'linear'
-                                            }}
+                                            initial={{ width: idx <= currentIndex ? '100%' : '0%' }}
+                                            animate={{ width: idx <= currentIndex ? '100%' : '0%' }}
+                                            transition={{ duration: 0.3 }}
                                         />
                                     </div>
                                 ))}
@@ -161,18 +142,10 @@ export default function ValentineRecapModal({ stories, isOpen, onClose }: Valent
                             <div
                                 className="w-1/3 h-full"
                                 onClick={prevSlide}
-                                onMouseDown={() => setIsPaused(true)}
-                                onMouseUp={() => setIsPaused(false)}
-                                onTouchStart={() => setIsPaused(true)}
-                                onTouchEnd={() => setIsPaused(false)}
                             />
                             <div
                                 className="w-2/3 h-full"
                                 onClick={nextSlide}
-                                onMouseDown={() => setIsPaused(true)}
-                                onMouseUp={() => setIsPaused(false)}
-                                onTouchStart={() => setIsPaused(true)}
-                                onTouchEnd={() => setIsPaused(false)}
                             />
                         </div>
 
@@ -183,11 +156,20 @@ export default function ValentineRecapModal({ stories, isOpen, onClose }: Valent
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.3, duration: 0.5 }}
+                                className={clsx(
+                                    "flex flex-col gap-2",
+                                    currentStory.description.length > 100
+                                        ? "bg-black/60 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl max-h-[65vh] overflow-y-auto pointer-events-auto"
+                                        : ""
+                                )}
                             >
                                 <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-br from-pink-400 to-red-400 drop-shadow-xs">
                                     {currentStory.title}
                                 </h2>
-                                <p className="mt-2 text-lg text-white/90 font-medium leading-relaxed max-w-[90%] font-serif italic">
+                                <p className={clsx(
+                                    "mt-2 text-lg text-white/90 font-medium leading-relaxed font-serif italic whitespace-pre-line",
+                                    currentStory.description.length > 100 ? "max-w-full text-base" : "max-w-[90%]"
+                                )}>
                                     {currentStory.description}
                                 </p>
                             </motion.div>
