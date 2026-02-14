@@ -212,7 +212,7 @@ Quiero que sepas que valoro cada detalle de nuestra relación: desde tus “mimi
 
 Quiero que sepas que, a pesar de que a veces me cuesta expresarme con palabras, intento que entiendas que me haces muy bien, me encanta vivir con vos, charlar con vos, salir de joda con vos, viajar con vos, hacerte chistes, molestarte, abrazarte, quererte, besarte.
 
-Sos una persona increible, mucho mejor que yo y me enseñas a ser mejor cada día.
+Sos una persona increible, sos super mega archi ultra hermosa, mucho mejor que yo y me enseñas a ser mejor cada día.
 
 Gracias por cuidarme cuando estoy “cachuso” y por bancar mis colgadas.
 
