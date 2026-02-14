@@ -53,7 +53,13 @@ export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmatio
                             .storage
                             .from('fotosRodricu')
                             .getPublicUrl(`random-moments/${randomFile.name}`);
-                        setImageUrl(publicUrl);
+
+                        // 🚀 Optimize Image using Supabase Image Transformation API
+                        // Standard: .../storage/v1/object/public/...
+                        // Optimal:  .../storage/v1/render/image/public/...
+                        const optimizedUrl = publicUrl.replace('/object/public/', '/render/image/public/') + '?width=800&quality=60&format=webp';
+
+                        setImageUrl(optimizedUrl);
                     }
                 }
             } catch (err) {
