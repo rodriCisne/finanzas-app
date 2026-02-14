@@ -13,7 +13,16 @@ export default function ValentineCheck() {
         async function init() {
             if (checked) return;
 
-            const TEST_MODE = true; // 💘 Enable for testing on Feb 6th
+            const TEST_MODE = false; // 💘 Disabled for production
+
+            const now = new Date();
+            const isValentineDay = now.getMonth() === 1 && now.getDate() === 14; // Month is 0-indexed (1 = Feb)
+
+            if (!isValentineDay && !TEST_MODE) {
+                console.log('Not Valentine\'s Day yet');
+                setChecked(true);
+                return;
+            }
 
             const supabase = supabaseBrowserClient();
             console.log('ValentineCheck: Checking eligibility...');
