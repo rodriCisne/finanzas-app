@@ -180,7 +180,7 @@ function getMockStories(): ValentineStory[] {
         {
             id: '6', order_index: 6, year: 2026,
             title: 'Casi Ruptura',
-            description: 'Nos dolió. Nos asustó. Casi nos rompe. Pero al final hicimos lo más valiente: elegirnos y aprender.',
+            description: 'Te mentí. Te dolió. Nos asustó. Casi nos rompe. Pero al final hicimos lo más valiente: elegirnos y aprender.',
             image_path: getImg('6')
         },
         {
