@@ -3,7 +3,7 @@
 MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enfoque **mobile-first** y preparada para evolucionar hacia una **PWA**.
 
 ## 🚀 Tecnologías Principales
-- **Framework:** [Next.js 16.1.2](https://nextjs.org/) (Parche de seguridad aplicado)
+- **Framework:** [Next.js 16.1.6](https://nextjs.org/) (Parche de seguridad aplicado)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
 - **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
@@ -63,6 +63,19 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Distribución de Gastos**: Gráfico de torta interactivo para entender la composición de los egresos.
 - **Control de Gastos por Persona**: Visualización clara de cuánto ha gastado cada miembro en billeteras compartidas.
 - **UX Optimizada**: Scroll lateral automático para ver los datos más recientes y etiquetas compactas (K/M) para mayor claridad.
+
+#### 💘 San Valentín Recap (Seasonal)
+- **Instagram-style Stories**: Visualización fluida de momentos especiales con animaciones premium (`framer-motion`).
+- **Lógica Inteligente**: Se muestra automáticamente el 14 de febrero a usuarios con billeteras compartidas.
+- **Persistencia**: Control de "visto" mediante Supabase para mostrarlo solo una vez por día.
+- **Modo Pruebas**: Capacidad de activar el modo debug añadiendo `?valentine=true` a la URL.
+
+#### 📸 Confirmación de Gastos (Emotional UX)
+- **Feedback Emocional**: Al guardar un gasto, se muestra una "Recompensa Visual" en lugar de un simple toast.
+- **Contenido Dinámico**:
+    - **Fotos**: Se obtiene una imagen aleatoria desde el bucket `fotosRodricu/random-moments`.
+    - **Frases**: Se selecciona una frase aleatoria del diccionario personal (`phrases.json`).
+- **Diseño Inmersivo**: Modal pantalla completa con fondo borroso y texto legible sobre la imagen.
 
 ---
 
@@ -181,3 +194,22 @@ docs/            # Documentación técnica y esquemas SQL
 - [x] **PWA**: Instalabilidad y assets configurados (Activación automática en Vercel/Producción).
 - [x] **Analítica**: Dashboard interactivo con gráficos comparativos, filtros y desglose por usuario.
 - [ ] **Billeteras Compartidas (V2)**: Gestión de miembros, invitaciones por link/email.
+
+---
+
+## 🤖 Agente y Automatización
+Este proyecto utiliza **Antigravity** con un conjunto de "Skills" y "Workflows" personalizados para asegurar la calidad y velocidad de desarrollo.
+
+### 🛠️ Agent Skills (Instaladas localmente)
+Hemos dotado al agente de capacidades especializadas en:
+- **Supabase & Postgres**: Mejores prácticas en modelado y RLS.
+- **Next.js App Router**: Patrones avanzados de arquitectura.
+- **E2E Testing**: Estrategias de pruebas robustas.
+- **UI & Animations**: Componentes "Premium" basados en Ibelick UI.
+- **Edge Functions**: Integraciones seguras con servicios externos.
+- **Doc Management**: Control y calidad de documentación.
+
+### 🔄 Workflows Personalizados
+Para mantener el repo limpio y funcional, utilizamos el comando:
+- **`/safe-commit`**: Ejecuta automáticamente `npm run build`, verifica que la documentación esté al día y solicita confirmación del mensaje de commit antes de subir cambios.
+- [ ] **Feature san valentin - wrapped del año y fotos sorpresa en UI de nueva transaccion **: Hacer una especie de wrapped de spotify sólo con 6 fotos nuestras y luego tener también en la pantalla de nueva transaccion una foto sorpresa que se elija aleatoriamente de entre las 1000 que hay en un albun de google photos.
