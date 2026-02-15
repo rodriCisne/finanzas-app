@@ -17,7 +17,7 @@ export default function ValentineCheck() {
             const urlParams = new URLSearchParams(window.location.search);
             const forceValentine = urlParams.get('valentine') === 'true';
 
-            const TEST_MODE = true; // 💘 Enabled permanently as per user request
+            const TEST_MODE = false; // 💘 Enabled permanently as per user request
 
             const now = new Date();
             // Create a date object for Argentina time
