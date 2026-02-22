@@ -1229,3 +1229,64 @@ create policy "delete transaction_tags for my wallets"
 ¿Qué hace?
 
 Permite quitar etiquetas sólo sobre transacciones de billeteras donde el usuario es miembro
+
+---
+
+## 6. Módulo San Valentín (Febrero 2026)
+
+Este módulo maneja el contenido dinámico del recap anual y el registro de visualizaciones.
+
+### 6.1. Tabla `valentine_stories`
+Contenido de las historias (títulos, frases y rutas de imagen).
+```sql
+create table if not exists public.valentine_stories (
+  id uuid primary key default gen_random_uuid(),
+  order_index int2 not null,
+  title text not null,
+  description text not null,
+  image_path text not null, -- ruta en el bucket 'valentine-assets'
+  year int2 not null default 2026,
+  created_at timestamptz default now()
+);
+
+alter table public.valentine_stories enable row level security;
+
+create policy "Anyone can read valentine stories"
+  on public.valentine_stories for select
+  using (true);
+```
+
+### 6.2. Tabla `valentine_impressions`
+Controla que el usuario vea el recap una sola vez por periodo.
+```sql
+create table if not exists public.valentine_impressions (
+  user_id uuid references auth.users(id) on delete cascade,
+  year int2 not null,
+  seen_at timestamptz default now(),
+  primary key (user_id, year)
+);
+
+alter table public.valentine_impressions enable row level security;
+
+create policy "Users can insert own impression"
+  on public.valentine_impressions for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can read own impression"
+  on public.valentine_impressions for select
+  using (auth.uid() = user_id);
+```
+
+### 6.3. Storage Bucket: `valentine-assets`
+Bucket de acceso público para las imágenes del recap.
+```sql
+-- Insertar bucket
+insert into storage.buckets (id, name, public)
+values ('valentine-assets', 'valentine-assets', true)
+on conflict (id) do nothing;
+
+-- Política de lectura pública
+create policy "Public Access to Valentine Assets"
+  on storage.objects for select
+  using ( bucket_id = 'valentine-assets' );
+```

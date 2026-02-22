@@ -1,6 +1,7 @@
 import { RequireAuth } from '@/components/RequireAuth';
 import { WalletProvider } from '@/components/WalletContext';
 import { BottomMenu } from '@/components/ui/BottomMenu';
+import ValentineCheck from '@/components/valentine/ValentineCheck';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </div>
           <BottomMenu />
+          <ValentineCheck />
         </div>
       </WalletProvider>
     </RequireAuth>

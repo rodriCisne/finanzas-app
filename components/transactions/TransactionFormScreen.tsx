@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import { getTodayLocalDateString } from '@/utils/date';
 import { Modal } from '@/components/ui/Modal';
+import { ExpenseConfirmationModal } from '@/components/transactions/ExpenseConfirmationModal';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 
 
@@ -50,6 +51,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
 
   // 🔄 Cargar la transacción en modo edición
@@ -175,6 +177,9 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
           );
         }
       }
+
+      // Show confirmation modal instead of redirecting immediately
+      setShowConfirmation(true);
     } else {
       // ✏️ Editar
       if (!transactionId) return;
@@ -229,8 +234,13 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
           );
         }
       }
-    }
 
+      router.replace('/');
+    }
+  };
+
+  const handleConfirmationClose = () => {
+    setShowConfirmation(false);
     router.replace('/');
   };
 
@@ -332,8 +342,8 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
               type="button"
               onClick={() => setType('expense')}
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === 'expense'
-                  ? 'bg-rose-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
                 }`}
             >
               Gasto
@@ -342,8 +352,8 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
               type="button"
               onClick={() => setType('income')}
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${type === 'income'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
                 }`}
             >
               Ingreso
@@ -431,8 +441,8 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
                       type="button"
                       onClick={() => toggleTag(tag.id)}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selected
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
-                          : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
+                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700'
                         }`}
                     >
                       {tag.name}
@@ -491,6 +501,11 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
         cancelLabel="Cancelar"
         variant="danger"
         isLoading={submitting}
+      />
+
+      <ExpenseConfirmationModal
+        isOpen={showConfirmation}
+        onClose={handleConfirmationClose}
       />
     </main>
   );
