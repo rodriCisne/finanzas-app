@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { getMonthLabel, getCurrentYearMonth } from '@/utils/date';
 import { useTags } from '@/hooks/useTags';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatCurrency } from '@/utils/format';
 import {
   ChevronDown,
@@ -144,8 +145,8 @@ export default function HomePage() {
       <header className="px-5 pt-8 pb-6">
         <div className="flex items-center justify-between mb-6">
           <Link href="/wallets" className="flex items-center gap-2 group">
-            <div className="h-10 w-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-500 group-hover:border-emerald-500/50 transition-colors">
-              <Wallet size={20} strokeWidth={2} />
+            <div className="h-10 w-10 rounded-full border border-slate-700 overflow-hidden shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/20 group-hover:border-emerald-500/50 transition-colors">
+              <Image src="/icons/icon-192x192.png" alt="Finanzas App" width={40} height={40} className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Billetera</span>
@@ -169,8 +170,8 @@ export default function HomePage() {
 
         {/* Card de resumen Minimalista */}
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-[28px] p-6 shadow-2xl shadow-black/40">
-          <div className="absolute top-0 right-0 p-5 opacity-10 pointer-events-none">
-            <Wallet size={120} />
+          <div className="absolute top-0 right-0 p-2 opacity-15 mix-blend-overlay grayscale pointer-events-none">
+            <Image src="/icons/icon-192x192.png" alt="Background Logo" width={130} height={130} className="drop-shadow-2xl" />
           </div>
 
           <div className="relative z-10">
@@ -271,40 +272,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Barra de filtros por etiqueta */}
-          {allTags.length > 0 && (
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2 ml-1">Por Etiqueta</p>
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => setSelectedTagId('all')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selectedTagId === 'all'
-                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
-                    : 'bg-slate-900 text-slate-400 border-slate-800'
-                    }`}
-                >
-                  Todas
-                </button>
-                {allTags.map((tag) => {
-                  const selected = selectedTagId === tag.id;
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => setSelectedTagId(tag.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all ${selected
-                        ? 'bg-emerald-500 text-black border-emerald-400 shadow-lg shadow-emerald-500/20'
-                        : 'bg-slate-900 text-slate-400 border-slate-800'
-                        }`}
-                    >
-                      {tag.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* Barra de filtros por etiqueta ocultada por petición del usuario */}
         </div>
 
 

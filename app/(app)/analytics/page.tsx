@@ -179,15 +179,6 @@ export default function AnalyticsPage() {
                                             itemStyle={{ color: '#f1f5f9' }}
                                             formatter={(val: number | string | undefined) => [formatCurrency(Number(val ?? 0)), '']}
                                         />
-                                        <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} name="Ingresos">
-                                            <LabelList
-                                                dataKey="income"
-                                                position="top"
-                                                fontSize={9}
-                                                fill="#10b981"
-                                                formatter={(v: any) => (v && Number(v) > 0) ? formatCompactValue(Number(v)) : ''}
-                                            />
-                                        </Bar>
                                         <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} name="Gastos">
                                             <LabelList
                                                 dataKey="expense"

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: 'Finanzas App',
   description: 'MVP de finanzas personales tipo Spendee',
   manifest: "/manifest.json",
+  icons: {
+    apple: "/apple-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
