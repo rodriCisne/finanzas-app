@@ -582,13 +582,23 @@ create policy "read own profile"
 
   using (auth.uid() = id);
 
+Policy: read profiles of wallet members
+
+sql
+Copiar código
+
+create policy "read profiles of wallet members"
+  on profiles
+  for select
+  using (
+    id = auth.uid() OR 
+    id IN (SELECT user_id FROM wallet_members WHERE wallet_id IN (SELECT get_auth_user_wallets()))
+  );
+
 ¿Qué hace?
+Permite que el usuario pueda leer su propio perfil y el perfil de todos los miembros de cualquiera de sus billeteras compartidas.
 
-Permite que el usuario sólo pueda leer su propio perfil.
-
-
-
-Regla: auth.uid() = id → el id del perfil debe coincidir con el id del usuario logueado.
+Regla: Se utiliza una función `SECURITY DEFINER` llamada `get_auth_user_wallets()` para saltear las restricciones de RLS temporalmente y obtener las billeteras evitando un ciclo infinito. 
 
 
 
@@ -696,27 +706,20 @@ Policies de UPDATE/DELETE se pueden agregar más adelante cuando implementes UI 
 
 5.3. wallet_members
 
-Policy: read my wallet memberships
+Policy: read wallet memberships
 
 sql
-
 Copiar código
 
-create policy "read my wallet memberships"
-
+create policy "read wallet memberships"
   on wallet_members
-
   for select
-
-  using (user_id = auth.uid());
+  using (wallet_id IN (SELECT get_auth_user_wallets()));
 
 ¿Qué hace?
+Permite que un usuario vea los registros de `wallet_members` de TODOS los miembros que pertenezcan a las mismas billeteras compartidas. 
 
-Permite que un usuario vea únicamente las filas de wallet_members donde él mismo es miembro.
-
-
-
-Regla: user_id = auth.uid().
+Regla: Se utiliza la función `SECURITY DEFINER` llamada `get_auth_user_wallets()` para evitar la recursividad infinita que surgiría de un join normal sobre esta tabla.
 
 
 

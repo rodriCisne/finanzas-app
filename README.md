@@ -3,11 +3,12 @@
 MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enfoque **mobile-first** y preparada para evolucionar hacia una **PWA**.
 
 ## 🚀 Tecnologías Principales
-- **Framework:** [Next.js 16.1.6](https://nextjs.org/) (Parche de seguridad aplicado)
+- **Framework:** [Next.js 16.1.6](https://nextjs.org/) (Con optimización de imágenes nativa)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
+- **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS + Storage)
 - **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
 - **Gráficos:** [Recharts](https://recharts.org/)
+- **Animaciones:** [Framer Motion](https://www.framer.com/motion/)
 
 ---
 
@@ -60,7 +61,7 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Dashboard Interactivo**: Nueva pantalla dedicada a la visualización de datos financieros.
 - **Granularidad Dinámica**: Gráficos de barras que muestran gastos por día (vista mensual) o por mes (vista anual).
 - **Filtros Personalizados**: Capacidad de filtrar todos los gráficos por Categoría y Usuario encargado del gasto.
-- **Distribución de Gastos**: Gráfico de torta interactivo para entender la composición de los egresos.
+- **Enfoque en Gastos**: Gráficos de barras y tortas optimizados para visualizar exclusivamente egresos, permitiendo un control de presupuesto más estricto.
 - **Control de Gastos por Persona**: Visualización clara de cuánto ha gastado cada miembro en billeteras compartidas.
 - **UX Optimizada**: Scroll lateral automático para ver los datos más recientes y etiquetas compactas (K/M) para mayor claridad.
 
@@ -192,7 +193,8 @@ docs/            # Documentación técnica y esquemas SQL
 
 ## 🗺️ Roadmap (Próximas fases)
 - [x] **PWA**: Instalabilidad y assets configurados (Activación automática en Vercel/Producción).
-- [x] **Analítica**: Dashboard interactivo con gráficos comparativos, filtros y desglose por usuario.
+- [x] **Analítica**: Dashboard interactivo con gráficos comparativos, filtros y desglose por usuario. (Optimizado para Gastos).
+- [x] **Optimización UI**: Remoción de etiquetas globales y simplificación de flujos por petición del usuario.
 - [ ] **Billeteras Compartidas (V2)**: Gestión de miembros, invitaciones por link/email.
 
 ---
@@ -212,4 +214,4 @@ Hemos dotado al agente de capacidades especializadas en:
 ### 🔄 Workflows Personalizados
 Para mantener el repo limpio y funcional, utilizamos el comando:
 - **`/safe-commit`**: Ejecuta automáticamente `npm run build`, verifica que la documentación esté al día y solicita confirmación del mensaje de commit antes de subir cambios.
-- [ ] **Feature san valentin - wrapped del año y fotos sorpresa en UI de nueva transaccion **: Hacer una especie de wrapped de spotify sólo con 6 fotos nuestras y luego tener también en la pantalla de nueva transaccion una foto sorpresa que se elija aleatoriamente de entre las 1000 que hay en un albun de google photos.
+- [x] **Feature San Valentín & Fotos Sorpresa**: Stories de momentos especiales y confirmación emocional tras registrar gastos.

@@ -420,42 +420,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
             </div>
           </div>
 
-          {/* ETIQUETAS */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs uppercase tracking-wider text-slate-500">
-                Etiquetas
-              </label>
-              {tagsLoading && (
-                <span className="text-[10px] text-slate-500">cargando...</span>
-              )}
-            </div>
-
-            {tags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => {
-                  const selected = selectedTagIds.includes(tag.id);
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => toggleTag(tag.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selected
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50'
-                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700'
-                        }`}
-                    >
-                      {tag.name}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-sm text-slate-500 italic p-2 bg-slate-900/50 rounded-lg">
-                No hay etiquetas disponibles.
-              </div>
-            )}
-          </div>
+          {/* ETIQUETAS ocultas por petición del usuario */}
 
           {/* NOTA */}
           <div>
