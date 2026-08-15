@@ -1,7 +1,7 @@
 // hooks/useCategories.ts
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export type Category = {
@@ -14,7 +14,7 @@ export function useCategories(walletId?: string) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!walletId) {
       setCategories([]);
       setLoading(false);
@@ -38,11 +38,13 @@ export function useCategories(walletId?: string) {
 
     setCategories((data as Category[]) ?? []);
     setLoading(false);
-  };
+  }, [walletId]);
 
   useEffect(() => {
-    load();
-  }, [walletId]);
+    // La carga es asíncrona y sincroniza este hook con Supabase.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load();
+  }, [load]);
 
   return { categories, loading, refetch: load };
 }
