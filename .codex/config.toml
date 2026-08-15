@@ -1,0 +1,4 @@
+# Codex config — generado por tali generate
+# notify es el único mecanismo tipo-hook de Codex (dispara en eventos del agente).
+# La gobernanza principal de Codex vive en .codex/system-prompt.md.
+notify = ["tali", "validate"]

@@ -20,6 +20,16 @@ export type UserData = {
   amount: number;
 };
 
+type FilaAnalitica = {
+  type: 'income' | 'expense';
+  amount: number | string;
+  date: string;
+  category_id: string | null;
+  created_by: string | null;
+  category: { name: string } | null;
+  creator: { full_name: string | null } | null;
+};
+
 export function useAnalyticsData(
   walletId: string | null, 
   period: 'month' | 'year', 
@@ -99,7 +109,9 @@ export function useAnalyticsData(
       const categorySet = new Map<string, string>();
       const userSet = new Map<string, string>();
 
-      (txs || []).forEach((row: any) => {
+      const filas = (txs ?? []) as unknown as FilaAnalitica[];
+
+      filas.forEach((row) => {
         const amount = Number(row.amount);
         const type = row.type as 'income' | 'expense';
         const date = new Date(row.date + 'T00:00:00');
