@@ -6,4 +6,5 @@ completed = [
     "specify",
     "execute",
     "verify",
+    "document",
 ]

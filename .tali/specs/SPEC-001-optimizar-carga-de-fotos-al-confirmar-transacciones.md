@@ -2,7 +2,7 @@
 id: SPEC-001
 titulo: "Optimizar carga de fotos al confirmar transacciones"
 tipo: spec
-estado: aprobada
+estado: implementada
 version: 1.0.0
 fecha: 2026-08-15
 autor: Planner
