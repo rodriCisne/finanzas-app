@@ -1,0 +1,3 @@
+#!/bin/sh
+# Generado por tali hooks install
+exec tali hooks run prepare-commit-msg "$@"

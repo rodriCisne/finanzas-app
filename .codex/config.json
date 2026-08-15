@@ -1,0 +1,21 @@
+{
+  "vendor": "codex",
+  "company": "tali",
+  "version": "1.0.0",
+  "governance": {
+    "spec_required": true,
+    "auto_reject_no_spec": true
+  },
+  "agents": {
+    "architect": { "model": "gpt-4o", "role": "execution" },
+    "backend": { "model": "gpt-4o", "role": "execution" },
+    "cobol": { "model": "o1", "role": "planning" },
+    "data": { "model": "gpt-4o", "role": "execution" },
+    "devops": { "model": "gpt-4o", "role": "execution" },
+    "documenter": { "model": "gpt-4o", "role": "execution" },
+    "frontend": { "model": "gpt-4o", "role": "execution" },
+    "qa": { "model": "gpt-4o-mini", "role": "verification" },
+    "security": { "model": "gpt-4o", "role": "execution" },
+    "tsp": { "model": "gpt-4o", "role": "execution" }
+  }
+}

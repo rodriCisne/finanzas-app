@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabaseBrowserClient } from '@/lib/supabaseClient';
 import phrasesData from '@/data/phrases.json';
-import { Loader2 } from 'lucide-react';
 
 interface ExpenseConfirmationModalProps {
     isOpen: boolean;
+    imageUrl: string | null;
     onClose: () => void;
 }
 
@@ -17,139 +16,83 @@ interface Phrase {
     author?: string;
 }
 
-export function ExpenseConfirmationModal({ isOpen, onClose }: ExpenseConfirmationModalProps) {
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [originalUrl, setOriginalUrl] = useState<string | null>(null);
-    const [phrase, setPhrase] = useState<Phrase | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [useFallback, setUseFallback] = useState(false);
-
-    useEffect(() => {
-        if (!isOpen) return;
-
-        async function loadContent() {
-            setLoading(true);
-            setUseFallback(false);
-            try {
-                // 1. Pick Random Phrase
-                const randomPhrase = phrasesData[Math.floor(Math.random() * phrasesData.length)];
-                setPhrase(randomPhrase);
-
-                // 2. Pick Random Image from Supabase
-                const supabase = supabaseBrowserClient();
-                const { data: files, error } = await supabase
-                    .storage
-                    .from('fotosRodricu') // Bucket Name
-                    .list('random-moments', { limit: 100, offset: 0 }); // Folder Path inside bucket
-
-                if (error) {
-                    console.error('Error fetching images:', error);
-                    setImageUrl(null);
-                } else if (files && files.length > 0) {
-                    // Filter out non-image files (folders, empty placeholders)
-                    const imageFiles = files.filter(f => f.name !== '.emptyFolderPlaceholder' && !f.name.startsWith('.'));
-
-                    if (imageFiles.length > 0) {
-                        const randomFile = imageFiles[Math.floor(Math.random() * imageFiles.length)];
-                        // Construct public URL with folder path
-                        const { data: { publicUrl } } = supabase
-                            .storage
-                            .from('fotosRodricu')
-                            .getPublicUrl(`random-moments/${randomFile.name}`);
-
-                        setOriginalUrl(publicUrl);
-
-                        // 🚀 Optimize Image using Supabase Image Transformation API
-                        // Standard: .../storage/v1/object/public/...
-                        // Optimal:  .../storage/v1/render/image/public/...
-                        const optimizedUrl = publicUrl.replace('/object/public/', '/render/image/public/') + '?width=800&quality=60&format=webp';
-
-                        setImageUrl(optimizedUrl);
-                    }
-                }
-            } catch (err) {
-                console.error('Unexpected error loading content:', err);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        loadContent();
-    }, [isOpen]);
-
-    const displayUrl = useFallback ? originalUrl : imageUrl;
-
+export function ExpenseConfirmationModal({ isOpen, imageUrl, onClose }: ExpenseConfirmationModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex flex-col bg-black"
-                >
-                    {/* Blurred Background for immersive feel */}
-                    {displayUrl && (
-                        <div
-                            className="absolute inset-0 bg-cover bg-center blur-2xl opacity-50 scale-110"
-                            style={{ backgroundImage: `url(${displayUrl})` }}
-                        />
-                    )}
+                <ConfirmationContent imageUrl={imageUrl} onClose={onClose} />
+            )}
+        </AnimatePresence>
+    );
+}
 
-                    {/* Main Image - Contained to fit screen */}
+function ConfirmationContent({ imageUrl, onClose }: Omit<ExpenseConfirmationModalProps, 'isOpen'>) {
+    const [phrase] = useState<Phrase>(
+        () => phrasesData[Math.floor(Math.random() * phrasesData.length)],
+    );
+    const [imageFailed, setImageFailed] = useState(false);
+    const displayUrl = imageFailed ? null : imageUrl;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="fixed inset-0 z-50 flex flex-col bg-black pb-[env(safe-area-inset-bottom)]"
+        >
+                    {/* Una sola imagen evita descargar o pintar duplicados de pantalla completa. */}
                     <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-                        {loading ? (
-                            <Loader2 className="w-12 h-12 text-white/50 animate-spin" />
-                        ) : displayUrl ? (
+                        {displayUrl ? (
                             <motion.img
                                 key={displayUrl}
                                 src={displayUrl}
-                                alt="Random Memory"
-                                initial={{ scale: 1.1, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.8 }}
-                                className="w-full h-full object-contain relative z-10 shadow-2xl"
+                                alt="Recuerdo aleatorio"
+                                decoding="async"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.18, ease: 'easeOut' }}
+                                className="h-full w-full object-contain"
                                 onError={() => {
-                                    console.warn('Optimized image failed to load, falling back to original.');
-                                    setUseFallback(true);
+                                    console.warn('La foto optimizada no pudo mostrarse.');
+                                    setImageFailed(true);
                                 }}
                             />
-                        ) : null}
+                        ) : (
+                            <div className="mx-6 max-w-sm rounded-2xl border border-slate-800 bg-slate-950 p-6 text-center">
+                                <p className="text-pretty text-sm text-slate-400" role="status">
+                                    La transacción se guardó correctamente. La foto no está disponible por el momento.
+                                </p>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Text Content - Always at Bottom */}
                     <motion.div
-                        initial={{ y: 50, opacity: 0 }}
+                        initial={{ y: 12, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="relative z-20 pt-12 pb-12 px-6 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col items-center text-center gap-6"
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="relative z-20 flex flex-col items-center gap-6 border-t border-white/10 bg-black/90 px-6 py-8 text-center"
                     >
-                        {loading ? null : (
-                            <>
-                                <div className="space-y-3 max-w-sm">
-                                    <h2 className="text-2xl md:text-3xl font-bold text-white font-serif italic leading-tight drop-shadow-lg">
-                                        "{phrase?.text}"
-                                    </h2>
-                                    {phrase?.author && (
-                                        <p className="text-white/70 text-sm font-medium leading-snug">
-                                            {phrase.author}
-                                        </p>
-                                    )}
-                                </div>
+                        <div className="max-w-sm space-y-3">
+                            <h2 className="text-balance font-serif text-2xl font-bold italic leading-tight text-white md:text-3xl">
+                                “{phrase?.text}”
+                            </h2>
+                            {phrase?.author && (
+                                <p className="text-pretty text-sm font-medium leading-snug text-white/70">
+                                    {phrase.author}
+                                </p>
+                            )}
+                        </div>
 
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={onClose}
-                                    className="px-10 py-3 bg-white text-black font-bold rounded-full shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:bg-slate-100 transition-all text-sm uppercase tracking-wide"
-                                >
-                                    Continuar
-                                </motion.button>
-                            </>
-                        )}
+                        <motion.button
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ duration: 0.12, ease: 'easeOut' }}
+                            onClick={onClose}
+                            className="rounded-full bg-white px-10 py-3 text-sm font-bold uppercase text-black shadow-sm transition-colors hover:bg-slate-100"
+                        >
+                            Continuar
+                        </motion.button>
                     </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+        </motion.div>
     );
 }

@@ -4,12 +4,12 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallets } from '@/components/WalletContext';
 import { useCategories } from '@/hooks/useCategories';
-import { useTags } from '@/hooks/useTags';
 import { useAuth } from '@/components/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
 import { getTodayLocalDateString } from '@/utils/date';
 import { Modal } from '@/components/ui/Modal';
 import { ExpenseConfirmationModal } from '@/components/transactions/ExpenseConfirmationModal';
+import { prepararFotoAleatoriaOptimizada } from '@/lib/randomMomentImage';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 
 
@@ -33,9 +33,6 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
   const { user } = useAuth();
   const { currentWallet: wallet, loading: walletLoading } = useWallets();
   const { categories, loading: categoriesLoading } = useCategories(wallet?.id);
-  const { tags, loading: tagsLoading } = useTags(
-    wallet?.id
-  );
 
   const [loadingTx, setLoadingTx] = useState(mode === 'edit');
 
@@ -52,6 +49,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationImageUrl, setConfirmationImageUrl] = useState<string | null>(null);
 
 
   // 🔄 Cargar la transacción en modo edición
@@ -115,12 +113,6 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
     [categories, type]
   );
 
-  const toggleTag = (id: string) => {
-    setSelectedTagIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!wallet || !user) return;
@@ -135,6 +127,13 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
     setErrorMsg(null);
 
     if (mode === 'create') {
+      // La foto se prepara en paralelo con la escritura de la transacción para
+      // que esté en caché cuando se abra la confirmación.
+      const fotoPrometida = prepararFotoAleatoriaOptimizada().catch((error) => {
+        console.error('No se pudo preparar la foto de confirmación.', error);
+        return null;
+      });
+
       // ➕ Crear
       const { data: insertedTx, error } = await supabase
         .from('transactions')
@@ -178,6 +177,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
         }
       }
 
+      setConfirmationImageUrl(await fotoPrometida);
       // Show confirmation modal instead of redirecting immediately
       setShowConfirmation(true);
     } else {
@@ -470,6 +470,7 @@ export function TransactionFormScreen({ mode, transactionId }: Props) {
 
       <ExpenseConfirmationModal
         isOpen={showConfirmation}
+        imageUrl={confirmationImageUrl}
         onClose={handleConfirmationClose}
       />
     </main>

@@ -1,0 +1,9 @@
+["spec/SPEC-001-optimizar-carga-de-fotos-al-confirmar-transacciones"]
+spec = "SPEC-001"
+completed = [
+    "analyze",
+    "plan",
+    "specify",
+    "execute",
+    "verify",
+]

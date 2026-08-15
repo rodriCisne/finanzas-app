@@ -1,0 +1,17 @@
+[core]
+company = "tali"
+version = "1.0.0"
+vendor = "codex"
+is_framework_root = false
+
+[blueprints]
+active = ["three-tier"]
+
+[components.api]
+stack = "nextjs-fullstack"
+
+[components.frontend]
+stack = "nextjs-fullstack"
+
+[plugins]
+active = []
