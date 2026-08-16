@@ -6,6 +6,7 @@ MVP de una aplicación de finanzas personales tipo Spendee, diseñada con un enf
 - **Framework:** [Next.js 16.1.6](https://nextjs.org/) (Con optimización de imágenes nativa)
 - **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS + Storage)
+- **IA:** [OpenAI Responses API](https://developers.openai.com/api/docs/guides/function-calling) con GPT-5.6 Luna
 - **Lenguaje:** TypeScript (Tipado estricto, sin `any`)
 - **Gráficos:** [Recharts](https://recharts.org/)
 - **Animaciones:** [Framer Motion](https://www.framer.com/motion/)
@@ -65,6 +66,15 @@ El esquema está diseñado en Supabase e incluye las siguientes tablas primordia
 - **Control de Gastos por Persona**: Visualización clara de cuánto ha gastado cada miembro en billeteras compartidas.
 - **UX Optimizada**: Scroll lateral automático para ver los datos más recientes y etiquetas compactas (K/M) para mayor claridad.
 
+#### 🤖 Asistente financiero de consulta
+- Chat privado en `/assistant`, limitado a la billetera activa.
+- Consultas por día exacto, rangos inclusivos, períodos relativos y comparaciones.
+- Herramientas de solo lectura para resúmenes, categorías y búsqueda de movimientos.
+- Totales separados por moneda: nunca combina ARS, USD u otras monedas.
+- Conversación visible temporal en memoria; no se reconstruye al recargar.
+- Telemetría por interacción en Supabase: pregunta, respuesta, tiempos, llamadas al modelo, tokens, costo USD estimado y herramientas, protegida por RLS.
+- Autenticación independiente en la API mediante JWT de Supabase y protección RLS.
+
 #### 💘 San Valentín Recap (Seasonal)
 - **Instagram-style Stories**: Visualización fluida de momentos especiales con animaciones premium (`framer-motion`).
 - **Lógica Inteligente**: Se muestra automáticamente el 14 de febrero a usuarios con billeteras compartidas.
@@ -102,16 +112,32 @@ npm install
 ```
 
 ### 3. Variables de entorno
-Crea un archivo `.env.local` en la raíz con tus credenciales de Supabase:
+Crea un archivo `.env.local` en la raíz. Puedes copiar `.env.example` y completar tus credenciales:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=TU_URL_DE_SUPABASE
 NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_ANON_PUBLIC_KEY
+OPENAI_API_KEY=TU_CLAVE_PRIVADA_DE_OPENAI
+OPENAI_MODEL=gpt-5.6-luna
 ```
+
+`OPENAI_API_KEY` es exclusivamente de servidor: nunca debe llevar el prefijo `NEXT_PUBLIC_` ni incluirse en commits o logs. El agente no utiliza `SUPABASE_SERVICE_ROLE_KEY`; todas las consultas se ejecutan con el JWT del usuario y respetan RLS.
+
+Las solicitudes a Responses API usan `store: false`, por lo que la aplicación no crea conversaciones persistentes en OpenAI. Esto no implica retención cero: salvo que la organización tenga Zero Data Retention o Modified Abuse Monitoring, OpenAI puede conservar temporalmente datos para monitoreo de abuso según su [política de datos](https://developers.openai.com/api/docs/guides/your-data#default-usage-policies-by-endpoint).
+
+La aplicación sí guarda telemetría propia en `public.interacciones_agente`.
+Incluye la pregunta y respuesta completas, por lo que debe tratarse como dato
+financiero sensible. No almacena el JWT ni los resultados crudos de las
+herramientas. Estas filas sirven para analizar calidad, latencia y consumo; no
+son memoria conversacional ni un registro forense a prueba de manipulación.
+El costo en USD es una estimación basada en la tarifa versionada guardada con
+cada fila; la factura de OpenAI sigue siendo la fuente definitiva.
 
 ### 4. Preparar la Base de Datos
 1. Crea un proyecto en [Supabase](https://supabase.com/).
 2. Ejecuta los scripts SQL de `docs/db-schema.md` en el orden indicado.
-3. Crea la **RPC** necesaria para la creación de billeteras:
+3. Aplica las migraciones versionadas de `supabase/migrations`, incluida la
+   creación de `interacciones_agente`.
+4. Crea la **RPC** necesaria para la creación de billeteras:
 
 ```sql
 create or replace function public.create_wallet(
@@ -158,6 +184,11 @@ npm run build
 O correr el linter para asegurar la calidad del código:
 ```bash
 npm run lint
+```
+
+Las pruebas unitarias del agente se ejecutan con:
+```bash
+npm test
 ```
 
 ---
