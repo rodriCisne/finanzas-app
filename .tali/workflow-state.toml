@@ -8,3 +8,14 @@ completed = [
     "verify",
     "document",
 ]
+
+["spec/SPEC-002-agente-financiero-de-consultas-con-openai"]
+spec = "SPEC-002"
+completed = [
+    "analyze",
+    "plan",
+    "specify",
+    "execute",
+    "verify",
+    "document",
+]

@@ -7,8 +7,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
       <WalletProvider>
-        <div className="min-h-screen max-w-md mx-auto bg-slate-950 text-slate-50 flex flex-col">
-          <div className="flex-1 pb-20">
+        <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-slate-950 text-slate-50">
+          <div className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))]">
             {children}
           </div>
           <BottomMenu />

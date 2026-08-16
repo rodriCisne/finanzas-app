@@ -7,6 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "photos:optimize": "node --env-file=.env.local scripts/optimize-random-moments.mjs"
   },
   "dependencies": {
@@ -16,10 +18,14 @@
     "framer-motion": "^12.33.0",
     "lucide-react": "^0.562.0",
     "next": "^16.1.6",
+    "openai": "7.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-markdown": "10.1.0",
     "recharts": "^3.7.0",
-    "tailwind-merge": "^3.4.0"
+    "remark-gfm": "4.0.1",
+    "tailwind-merge": "^3.4.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -30,6 +36,7 @@
     "eslint-config-next": "16.1.2",
     "sharp": "0.35.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "4.1.10"
   }
 }
